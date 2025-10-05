@@ -1,0 +1,332 @@
+.setcpu "65C02"
+.zeropage
+                .org ZP_START3A
+string_ptr:     .res 2
+
+.segment "MENU"
+
+MEMOART1:
+    .asciiz "     __ __                        _ "
+MEMOART2:
+    .asciiz "    |  \  \ ___ ._ _ _  ___  ___ / |"
+MEMOART3:
+    .asciiz "    |     |/ ._>| ' ' |/ . \|___|| |"
+MEMOART4:
+    .asciiz "    |_|_|_|\___.|_|_|_|\___/     |_|"
+
+MENU_WOZMON_MSG:
+    .asciiz "1- WOZMON"
+MENU_BASIC_MSG:
+    .asciiz "2- MS-BASIC"
+MENU_EXTERNAL_ROM_MSG:
+    .asciiz "3- External Slot"
+MENU_ABOUT_MSG:
+    .asciiz "A- About"
+
+DISPLAY_MENU:
+; Clear screen
+    LDA     #$0C            ; FormFeed Clear screen command
+    JSR     ECHO
+; Display welcome message and menu options
+    LDA     #<MEMOART1      ; Load low byte of message address
+    LDY     #>MEMOART1      ; Load high byte of message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<MEMOART2      ; Load low byte of message address
+    LDY     #>MEMOART2      ; Load high byte of message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<MEMOART3      ; Load low byte of message address
+    LDY     #>MEMOART3      ; Load high byte of message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<MEMOART4      ; Load low byte of message address
+    LDY     #>MEMOART4      ; Load high byte of message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    JSR     PRINT_CR_LF
+    JSR     PRINT_CR_LF
+
+    LDA     #<MENU_WOZMON_MSG  ; Load low byte of WOZMON message address
+    LDY     #>MENU_WOZMON_MSG  ; Load high byte of WOZMON message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+
+    LDA     #<MENU_BASIC_MSG    ; Load low byte of BASIC message address
+    LDY     #>MENU_BASIC_MSG    ; Load high byte of BASIC message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+; Check if external ROM is present and print external ROM message if present
+CHECK_ROM:
+    LDA     $A000           ; Check for first byte of ROM
+    CMP     #$A0            ; Is it $A000 ?
+    BEQ     @no_rom         ; No, skip external ROM option.
+    ; ROM is present, show the external ROM menu option
+    LDA     #<MENU_EXTERNAL_ROM_MSG  ; Load low byte of external ROM message address
+    LDY     #>MENU_EXTERNAL_ROM_MSG  ; Load high byte of external ROM message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+@no_rom:
+    JSR     PRINT_CR_LF
+    LDA     #<MENU_ABOUT_MSG   ; Load low byte of ABOUT message address
+    LDY     #>MENU_ABOUT_MSG   ; Load high byte of ABOUT message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    RTS
+
+;-----------------------------------------------------
+; Print zero-terminated string
+; Lower byte of address is in A and higher byte in Y
+; Exemple usage:
+;   LDA #<string_address
+;   LDX #>string_address
+;-----------------------------------------------------
+PRINT_STRING:
+    STA     string_ptr      ; Store low byte of address in zero page
+    STY     string_ptr+1    ; Store high byte of address
+    LDY     #0              ; String index
+@print_loop:
+    LDA     (string_ptr),y  ; Get character using indirect Y addressing
+    BEQ     @print_done     ; If zero, end of string
+    JSR     ECHO            ; Send character
+    INY                     ; Next character
+    JMP     @print_loop     ; Continue
+@print_done:
+    RTS
+
+PRINT_CR_LF: 
+    PHA
+    LDA     #CR
+    JSR     ECHO
+    LDA     #LF
+    JSR     ECHO
+    PLA
+    RTS
+
+PRINT_FF:
+    LDA     #$0C
+    JSR     ECHO
+    RTS
+
+INIT_VIA:
+    LDA     #%00000000      ; Set all bits of port B as input
+    STA     VIA_DDRB        ; Set VIA data direction register B
+    LDA     #%00000000      ; Set all bits of port A as input
+    STA     VIA_DDRA        ; Set VIA data direction register A
+    RTS
+
+INIT_SERIAL_1200:
+    LDA     #ACIA_CTRL_1S7B_1200
+    STA     ACIA_CTRL
+    LDA     #ACIA_CMD_PEN_EOFF
+    STA     ACIA_CMD
+    RTS
+
+INIT_SERIAL_4800:
+    LDA     #ACIA_CTRL_1S7B_4800
+    STA     ACIA_CTRL
+    LDA     #ACIA_CMD_PEN_EOFF
+    STA     ACIA_CMD
+    RTS
+
+RESET:
+    CLD                     ; Clear decimal arithmetic mode.
+    JSR     INIT_BUFFER     ; Initialize input buffer.
+    CLI
+    JSR     INIT_SERIAL_1200 ; Initialize serial for 1200 baud.
+    JSR     DISABLE_ECHO
+    JSR     SEND_4800_COMMAND ; Send 4800 baud command to Minitel
+    LDA     #ACIA_CTRL_1S7B_4800
+    STA     ACIA_CTRL
+    JSR     INIT_VIA        ; Initialize VIA for joystick input
+WARM_RST:
+    JSR     CURSOR_OFF      ; Turn off cursor
+    JSR     PAGE_MODE       ; Set page mode
+    JSR     CLEAR_BUFFER
+    JSR     DISPLAY_MENU    ; Display menu
+    ; Fall through to WAIT_FOR_KEY
+    
+WAIT_FOR_KEY:
+    JSR     MONRDKEY        ; Get character from buffer
+    BCC     WAIT_FOR_KEY    ; No character, try again.
+    CMP     #'1'            ; '1' for WOZMON?
+    BEQ     GOTO_WOZMON     ; Yes, jump to WOZMON.
+    CMP     #'2'            ; '2' for BASIC?
+    BEQ     GOTO_BASIC      ; Yes, jump to BASIC.
+    CMP     #'3'            ; '3' for external ROM?
+    BEQ     GOTO_EXTERNAL_ROM; Yes, go to external ROM location.
+    CMP     #'A'            ; 'A' for ABOUT?
+    BEQ     GOTO_ABOUT      ; Yes, go to ABOUT location.
+    JMP     WAIT_FOR_KEY    ; Invalid key, wait again.
+
+GOTO_WOZMON:
+    JSR     SCROLL_MODE
+    JSR     CURSOR_HOME
+    JSR     CLEAR_SCREEN
+    JMP     START_WOZMON
+GOTO_BASIC:
+    JSR     SCROLL_MODE
+    JSR     CURSOR_HOME
+    JSR     CLEAR_SCREEN
+    JSR     CLEAR_BUFFER
+    JMP     COLD_START
+GOTO_ABOUT:
+    JSR     CURSOR_HOME
+    JSR     CLEAR_SCREEN
+    JSR     CLEAR_BUFFER
+    JMP     DISPLAY_ABOUT
+GOTO_EXTERNAL_ROM:
+    LDA     $A000           ; Check for first byte of ROM
+    CMP     #$A0            ; Is it $A000 ?
+    BNE     WAIT_FOR_KEY    ; Yes, skip input and wait for key.
+    JSR     SCROLL_MODE
+    JSR     CLEAR_SCREEN
+    JSR     CURSOR_HOME
+    JSR     CLEAR_BUFFER
+    JMP     $A000
+
+
+;-----------------------------------------------------
+; About Section
+;-----------------------------------------------------
+
+DISPLAY_ABOUT:
+    ; loop through and print each line of the about message
+    LDA     #<ABOUT_MSG1    ; Load low byte of about message address
+    LDY     #>ABOUT_MSG1    ; Load high byte of about message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG2    
+    LDY     #>ABOUT_MSG2    
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG3    
+    LDY     #>ABOUT_MSG3    
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG4    
+    LDY     #>ABOUT_MSG4    
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG5    
+    LDY     #>ABOUT_MSG5    
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG7    
+    LDY     #>ABOUT_MSG7    
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG8    
+    LDY     #>ABOUT_MSG8    
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG9    
+    LDY     #>ABOUT_MSG9    
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG10   
+    LDY     #>ABOUT_MSG10   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG11   
+    LDY     #>ABOUT_MSG11   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG12   
+    LDY     #>ABOUT_MSG12   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG13   
+    LDY     #>ABOUT_MSG13   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG14   
+    LDY     #>ABOUT_MSG14   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG16   
+    LDY     #>ABOUT_MSG16   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG17   
+    LDY     #>ABOUT_MSG17   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG18   
+    LDY     #>ABOUT_MSG18   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG19   
+    LDY     #>ABOUT_MSG19   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG20   
+    LDY     #>ABOUT_MSG20   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG21   
+    LDY     #>ABOUT_MSG21   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG22   
+    LDY     #>ABOUT_MSG22   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG23   
+    LDY     #>ABOUT_MSG23   
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+
+@about_done:
+    JSR     MONRDKEY        ; Get character from buffer
+    BCC     @about_done     ; No character, try again.
+    JMP     WARM_RST        ; Return to menu
+
+ABOUT_MSG1:
+    .asciiz " Memo-1"
+ABOUT_MSG2:
+    .asciiz "A 65C02 chip set based computer, for"
+ABOUT_MSG3:
+    .asciiz "fun and for learning purposes."
+ABOUT_MSG4:
+    .asciiz "by Benoit Aveline - aka Memoire Morte"
+ABOUT_MSG5:
+    .asciiz "(c) 2025 - Creative Commons BY-NC"
+ABOUT_MSG6:
+    .asciiz ""
+ABOUT_MSG7:
+    .asciiz "You are free to use, copy, modify, and"
+ABOUT_MSG8:
+    .asciiz "share this software for any "
+ABOUT_MSG9:
+    .asciiz "non-commercial purpose. You do not need"
+ABOUT_MSG10:
+    .asciiz "to credit the original author."
+ABOUT_MSG11:
+    .asciiz "Commercial use of this software, in"
+ABOUT_MSG12:
+    .asciiz "whole or in part, is prohibited. The"
+ABOUT_MSG13:
+    .asciiz "software is provided 'as is', without"
+ABOUT_MSG14:
+    .asciiz "any warranty."
+ABOUT_MSG15:
+    .asciiz ""
+ABOUT_MSG16:
+    .asciiz "Special thanks to:"
+ABOUT_MSG17:
+    .asciiz " - Ben Eater for his 6502 computer"
+ABOUT_MSG18:
+    .asciiz "   design and tutorials (CC-BY)"
+ABOUT_MSG19:
+    .asciiz " - Ian Ward for his YouTube videos on"
+ABOUT_MSG20:
+    .asciiz "   2004 lcd and 555 timer"
+ABOUT_MSG21:
+    .asciiz "Code Includes:"
+ABOUT_MSG22:
+    .asciiz " - Wozmon by Steve Wozniak - Apple"
+ABOUT_MSG23:
+    .asciiz " - BASIC by Weiland & Gates - Microsoft"
