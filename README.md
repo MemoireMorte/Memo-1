@@ -50,6 +50,21 @@ Right -- Bit3
 Fire --- Bit4
 ```
 
+Basic function `JOY()` provides the same thing. `JOY(0)` for port A and `JOY(1)` for port B will return a number corresponding to the given port's status, masked on the 5 corresponding bits (this way, bits 5, 6 and 7 are still usable in the future without altering this implementation).
+
+Sample: 
+```BASIC
+10 A = JOY(0)
+20 IF A = 31 THEN GOTO 10
+30 IF A = 30 THEN PRINT "UP"
+40 IF A = 29 THEN PRINT "DOWN"
+50 IF A = 27 THEN PRINT "LEFT"
+60 IF A = 23 THEN PRINT "RIGHT"
+70 IF A = 15 THEN PRINT "FIRE"
+80 GOTO 10
+RUN
+```
+
 ### ACIA
 ```
 ACIA data register ----- $9000
@@ -74,7 +89,7 @@ To assemble the code yourself, make sure you have both binaries in your path, or
 
 
 First make sure you have an out directory next to the src. If you cloned this repository you should have it already as I wanted to share a binary release at least. 
-```
+```BASH
 cd src
 ca65 -D memo msbasic.s -o ../out/memo.o &&
 ld65 -C memo.cfg ../out/memo.o -o ../out/memo.bin -Ln ../out/memo.lbl
