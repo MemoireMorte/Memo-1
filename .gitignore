@@ -30,7 +30,7 @@ x86/
 [Aa][Rr][Mm]64[Ee][Cc]/
 bld/
 [Oo]bj/
-[Oo]ut/
+#[Oo]ut/
 [Ll]og/
 [Ll]ogs/
 
@@ -416,3 +416,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Assembler executables
+*.exe
