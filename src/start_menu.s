@@ -224,6 +224,7 @@ DISPLAY_ABOUT:
     LDY     #>ABOUT_MSG1    ; Load high byte of about message address
     JSR     PRINT_STRING
     JSR     PRINT_CR_LF
+    JSR     PRINT_CR_LF
     LDA     #<ABOUT_MSG2    
     LDY     #>ABOUT_MSG2    
     JSR     PRINT_STRING
@@ -241,21 +242,9 @@ DISPLAY_ABOUT:
     JSR     PRINT_STRING
     JSR     PRINT_CR_LF
     JSR     PRINT_CR_LF
-    LDA     #<ABOUT_MSG7    
-    LDY     #>ABOUT_MSG7    
-    JSR     PRINT_STRING
     JSR     PRINT_CR_LF
-    LDA     #<ABOUT_MSG8    
-    LDY     #>ABOUT_MSG8    
-    JSR     PRINT_STRING
     JSR     PRINT_CR_LF
-    LDA     #<ABOUT_MSG9    
-    LDY     #>ABOUT_MSG9    
-    JSR     PRINT_STRING
     JSR     PRINT_CR_LF
-    LDA     #<ABOUT_MSG10   
-    LDY     #>ABOUT_MSG10   
-    JSR     PRINT_STRING
     JSR     PRINT_CR_LF
     LDA     #<ABOUT_MSG11   
     LDY     #>ABOUT_MSG11   
@@ -269,10 +258,14 @@ DISPLAY_ABOUT:
     LDY     #>ABOUT_MSG13   
     JSR     PRINT_STRING
     JSR     PRINT_CR_LF
+    JSR     PRINT_CR_LF
     LDA     #<ABOUT_MSG14   
     LDY     #>ABOUT_MSG14   
     JSR     PRINT_STRING
     JSR     PRINT_CR_LF
+    LDA     #<ABOUT_MSG15   
+    LDY     #>ABOUT_MSG15   
+    JSR     PRINT_STRING
     JSR     PRINT_CR_LF
     LDA     #<ABOUT_MSG16   
     LDY     #>ABOUT_MSG16   
@@ -282,30 +275,6 @@ DISPLAY_ABOUT:
     LDY     #>ABOUT_MSG17   
     JSR     PRINT_STRING
     JSR     PRINT_CR_LF
-    LDA     #<ABOUT_MSG18   
-    LDY     #>ABOUT_MSG18   
-    JSR     PRINT_STRING
-    JSR     PRINT_CR_LF
-    LDA     #<ABOUT_MSG19   
-    LDY     #>ABOUT_MSG19   
-    JSR     PRINT_STRING
-    JSR     PRINT_CR_LF
-    LDA     #<ABOUT_MSG20   
-    LDY     #>ABOUT_MSG20   
-    JSR     PRINT_STRING
-    JSR     PRINT_CR_LF
-    LDA     #<ABOUT_MSG21   
-    LDY     #>ABOUT_MSG21   
-    JSR     PRINT_STRING
-    JSR     PRINT_CR_LF
-    LDA     #<ABOUT_MSG22   
-    LDY     #>ABOUT_MSG22   
-    JSR     PRINT_STRING
-    JSR     PRINT_CR_LF
-    LDA     #<ABOUT_MSG23   
-    LDY     #>ABOUT_MSG23   
-    JSR     PRINT_STRING
-    JSR     PRINT_CR_LF
 
 @about_done:
     JSR     MONRDKEY        ; Get character from buffer
@@ -313,48 +282,26 @@ DISPLAY_ABOUT:
     JMP     WARM_RST        ; Return to menu
 
 ABOUT_MSG1:
-    .asciiz " Memo-1"
+    .asciiz "      Memo-1"
 ABOUT_MSG2:
-    .asciiz "A 65C02 chip set based computer, for"
+    .asciiz "A 65C02 chip set based computer, for funand for learning purposes."
 ABOUT_MSG3:
-    .asciiz "fun and for learning purposes."
-ABOUT_MSG4:
     .asciiz "by Benoit Aveline - aka Memoire Morte"
-ABOUT_MSG5:
+ABOUT_MSG4:
     .asciiz "(c) 2025 - Creative Commons BY-NC"
-ABOUT_MSG6:
-    .asciiz ""
-ABOUT_MSG7:
-    .asciiz "You are free to use, copy, modify, and"
-ABOUT_MSG8:
-    .asciiz "share this software for any "
-ABOUT_MSG9:
-    .asciiz "non-commercial purpose. You do not need"
-ABOUT_MSG10:
-    .asciiz "to credit the original author."
+ABOUT_MSG5:
+    .asciiz "Full source and derived licenses at:    https://github.com/MemoireMorte/Memo-1"
 ABOUT_MSG11:
-    .asciiz "Commercial use of this software, in"
-ABOUT_MSG12:
-    .asciiz "whole or in part, is prohibited. The"
-ABOUT_MSG13:
-    .asciiz "software is provided 'as is', without"
-ABOUT_MSG14:
-    .asciiz "any warranty."
-ABOUT_MSG15:
-    .asciiz ""
-ABOUT_MSG16:
     .asciiz "Special thanks to:"
-ABOUT_MSG17:
-    .asciiz " - Ben Eater for his 6502 computer"
-ABOUT_MSG18:
-    .asciiz "   design and tutorials (CC-BY)"
-ABOUT_MSG19:
-    .asciiz " - Ian Ward for his YouTube videos on"
-ABOUT_MSG20:
-    .asciiz "   2004 lcd and 555 timer"
-ABOUT_MSG21:
-    .asciiz "Code Includes:"
-ABOUT_MSG22:
+ABOUT_MSG12:
+    .asciiz " - B. Eater for his 6502 computer design and tutorials"
+ABOUT_MSG13:
+    .asciiz " - I. Ward for his YouTube channel on    2004 lcd and 555 timer"
+ABOUT_MSG14:
+    .asciiz "Current source code is based on:"
+ABOUT_MSG15:
     .asciiz " - Wozmon by Steve Wozniak - Apple"
-ABOUT_MSG23:
+ABOUT_MSG16:
     .asciiz " - BASIC by Weiland & Gates - Microsoft"
+ABOUT_MSG17:
+    .asciiz " - BASIC disassembly by Michael Steil"
