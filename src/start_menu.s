@@ -206,10 +206,9 @@ GOTO_ABOUT:
 GOTO_EXTERNAL_ROM:
     LDA     $A000           ; Check for first byte of ROM
     CMP     #$A0            ; Is it $A000 ?
-    BNE     WAIT_FOR_KEY    ; Yes, skip input and wait for key.
-    JSR     SCROLL_MODE
-    JSR     CLEAR_SCREEN
+    BEQ     WAIT_FOR_KEY    ; No, skip input and wait for key.
     JSR     CURSOR_HOME
+    JSR     CLEAR_SCREEN
     JSR     CLEAR_BUFFER
     JMP     $A000
 
