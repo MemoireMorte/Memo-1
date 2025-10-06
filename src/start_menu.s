@@ -19,7 +19,9 @@ MENU_WOZMON_MSG:
 MENU_BASIC_MSG:
     .asciiz "2- MS-BASIC"
 MENU_EXTERNAL_ROM_MSG:
-    .asciiz "3- External Slot"
+    .asciiz "3- "
+MENU_EXTERNAL_ROM_NAME_MSG:
+    .asciiz "External Slot"
 MENU_ABOUT_MSG:
     .asciiz "A- About"
 
@@ -65,8 +67,34 @@ CHECK_ROM:
     LDA     #<MENU_EXTERNAL_ROM_MSG  ; Load low byte of external ROM message address
     LDY     #>MENU_EXTERNAL_ROM_MSG  ; Load high byte of external ROM message address
     JSR     PRINT_STRING
+    LDA     $BFF9       ; Read the name of the external ROM from its header
+    CMP     #$FF        ; Check if it's $FF (no name)
+    BEQ     @no_rom_name
+    CMP     #$00        ; Check if it's $00 (no name)
+    BEQ     @no_rom_name
+    LDA     $BFF9
+    JSR     ECHO
+    LDA     $BFFA
+    JSR     ECHO
+    LDA     $BFFB
+    JSR     ECHO
+    LDA     $BFFC
+    JSR     ECHO
+    LDA     $BFFD
+    JSR     ECHO
+    LDA     $BFFE
+    JSR     ECHO
+    LDA     $BFFF
+    JSR     ECHO
+    JSR     PRINT_CR_LF
+    JMP     @print_about_menu
+@no_rom_name:           ; Print the name of the external ROM
+    LDA     #<MENU_EXTERNAL_ROM_NAME_MSG ; Load low byte of "External Slot" message address
+    LDY     #>MENU_EXTERNAL_ROM_NAME_MSG ; Load high byte of "External Slot" message address
+    JSR     PRINT_STRING
     JSR     PRINT_CR_LF
 @no_rom:
+@print_about_menu:
     JSR     PRINT_CR_LF
     LDA     #<MENU_ABOUT_MSG   ; Load low byte of ABOUT message address
     LDY     #>MENU_ABOUT_MSG   ; Load high byte of ABOUT message address

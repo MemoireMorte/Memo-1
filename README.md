@@ -76,7 +76,10 @@ ACIA control register -- $9003
 ## The menu
 Upon startup, the Memo-1 inits the ACIA, the VIA, sends commands to the Minitel to change the baud rate and disable local echo, then presents a simple menu system with several options: press '1' to launch WOZMON (a monitor program by Steve Wozniak for memory examination and modification), press '2' to start MS-BASIC (Microsoft BASIC interpreter), press '3' to execute code from an external ROM slot (this option only appears if an external ROM is detected at address $A000), or press 'A' to view an about screen with system information, license and credits. 
 
-The menu automatically detects an external ROM's presence and adapts the available options accordingly by looking at the first opcode at $A000. If it reads 0xA0 it assumes there is nothing there (6502 always read high nibble of the address when accessing an address where no hardware responds). If your code has to start with 0xA0 (LDY) then just add 0xEA (NOP) before and question your lifestyle, you barbarian (who would start a code by stuffing the Y register?).
+The menu automatically detects an external ROM's presence and adapts the available options accordingly by looking at the first opcode at $A000. If it reads $A0 it assumes there is nothing there (6502 always read high nibble of the address when accessing an address where no hardware responds). If your code has to start with $A0 (LDY) then just add $EA (NOP) before and question your lifestyle, you barbarian (who would start a code by stuffing the Y register?).
+
+If the start menu detects a ROM in external slot, it will read a personalised name from the last 8 bytes of the rom, from $BFF9 to $BFFF. 
+If $BFF9 is $00 or $FF it will skip reading, and just display 'External Slot' in the menu.
 
 ## Terminal
 This project is made to use a Minitel 1b as terminal. It implements a simple minitel driver for 65C02, assuming you are using the 6551 ACIA chip as UART (NOT the W65C51, which has 2 hardware incompatibilities with the Minitel).
