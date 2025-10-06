@@ -67,11 +67,13 @@ CHECK_ROM:
     LDA     #<MENU_EXTERNAL_ROM_MSG  ; Load low byte of external ROM message address
     LDY     #>MENU_EXTERNAL_ROM_MSG  ; Load high byte of external ROM message address
     JSR     PRINT_STRING
-    LDA     $BFF9       ; Read the name of the external ROM from its header
+    LDA     $BFF8       ; Read the name of the external ROM from its header
     CMP     #$FF        ; Check if it's $FF (no name)
     BEQ     @no_rom_name
     CMP     #$00        ; Check if it's $00 (no name)
     BEQ     @no_rom_name
+    LDA     $BFF8
+    JSR     ECHO
     LDA     $BFF9
     JSR     ECHO
     LDA     $BFFA
