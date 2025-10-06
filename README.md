@@ -105,8 +105,8 @@ ld65 -C memo.cfg ../out/memo.o -o ../out/memo.bin -Ln ../out/memo.lbl
 
 ## Licenses & credits
 
-A 65C02 chip set based computer, for fun and for learning purposes.
-by Benoit Aveline - aka Memoire Morte
+A 65C02 chip set based computer, for fun and for learning purposes.  
+By Benoit Aveline, aka Memoire Morte  
 (c) 2025 - Creative Commons BY-NC
 
 Special thanks to:
