@@ -24,6 +24,7 @@ PRO3           = $3B    ; PRO3 command
 FNCT_STOP       = $6A    ; STOP function code
 FNCT_START      = $69    ; START function code
 ROULEAU         = $43    ; Scroll mode command
+LOWERCASE       = $45    ; Lowercase mode command
 
 ; Minitel routing codes
 AIGUILLAGE_OFF  = $60    ; Routing OFF command
@@ -213,6 +214,56 @@ PAGE_MODE:
     
     rts
     
+;-----------------------------------------------------
+; Send command to Minitel to enable uppercase
+;-----------------------------------------------------
+UPPERCASE_MODE:
+    ; ESC 0x3A 0x69 0x43
+    ; Send ESC
+    lda #ESC
+    jsr SEND_BYTE
+    
+    ; Send PRO2 sequence
+    lda #PRO2
+    jsr SEND_BYTE
+    
+    ; Send STOP command
+    lda #FNCT_STOP      ; STOP (0x6A)
+    jsr SEND_BYTE
+    
+    ; Send LOWERCASE parameter
+    lda #LOWERCASE        ; LOWERCASE (0x45)
+    jsr SEND_BYTE
+
+    jsr DOUBLE_DELAY    ; Wait a bit for Minitel to process command
+    
+    rts
+    
+;-----------------------------------------------------
+; Send command to Minitel to enable lowercase
+;-----------------------------------------------------
+LOWERCASE_MODE:
+    ; ESC 0x3A 0x69 0x43
+    ; Send ESC
+    lda #ESC
+    jsr SEND_BYTE
+    
+    ; Send PRO2 sequence
+    lda #PRO2
+    jsr SEND_BYTE
+    
+    ; Send START command
+    lda #FNCT_START      ; START (0x6)
+    jsr SEND_BYTE
+    
+    ; Send LOWERCASE parameter
+    lda #LOWERCASE        ; LOWERCASE (0x45)
+    jsr SEND_BYTE
+
+    jsr DOUBLE_DELAY    ; Wait a bit for Minitel to process command
+    
+    rts
+
 ;-----------------------------------------------------
 ; Enable graphic mode
 ;-----------------------------------------------------

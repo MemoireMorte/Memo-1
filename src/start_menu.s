@@ -24,6 +24,8 @@ MENU_EXTERNAL_ROM_NAME_MSG:
     .asciiz "External Slot"
 MENU_ABOUT_MSG:
     .asciiz "A- About"
+MENU_RESTART_MSG:
+    .asciiz "R- Restart Basic (warm start)"
 
 DISPLAY_MENU:
 ; Clear screen
@@ -45,6 +47,7 @@ DISPLAY_MENU:
     LDA     #<MEMOART4      ; Load low byte of message address
     LDY     #>MEMOART4      ; Load high byte of message address
     JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
     JSR     PRINT_CR_LF
     JSR     PRINT_CR_LF
     JSR     PRINT_CR_LF
@@ -98,8 +101,14 @@ CHECK_ROM:
 @no_rom:
 @print_about_menu:
     JSR     PRINT_CR_LF
+    JSR     PRINT_CR_LF
     LDA     #<MENU_ABOUT_MSG   ; Load low byte of ABOUT message address
     LDY     #>MENU_ABOUT_MSG   ; Load high byte of ABOUT message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+@print_restart_menu:
+    LDA     #<MENU_RESTART_MSG   ; Load low byte of RESTART message address
+    LDY     #>MENU_RESTART_MSG   ; Load high byte of RESTART message address
     JSR     PRINT_STRING
     JSR     PRINT_CR_LF
     RTS
@@ -187,14 +196,23 @@ WAIT_FOR_KEY:
     BEQ     GOTO_EXTERNAL_ROM; Yes, go to external ROM location.
     CMP     #'A'            ; 'A' for ABOUT?
     BEQ     GOTO_ABOUT      ; Yes, go to ABOUT location.
+    CMP     #'a'            ; 'a' for ABOUT?
+    BEQ     GOTO_ABOUT      ; Yes, go to ABOUT location.
+    CMP     #'R'            ; 'R' for Restart?
+    BEQ     RESTART_BASIC   ; Yes, go to RESTART location.
+    CMP     #'r'            ; 'r' for Restart?
+    BEQ     RESTART_BASIC   ; Yes, go to RESTART location.
     JMP     WAIT_FOR_KEY    ; Invalid key, wait again.
 
 GOTO_WOZMON:
+    JSR     UPPERCASE_MODE
     JSR     SCROLL_MODE
     JSR     CURSOR_HOME
     JSR     CLEAR_SCREEN
+    JSR     CLEAR_BUFFER
     JMP     START_WOZMON
 GOTO_BASIC:
+    JSR     LOWERCASE_MODE
     JSR     SCROLL_MODE
     JSR     CURSOR_HOME
     JSR     CLEAR_SCREEN
@@ -213,6 +231,13 @@ GOTO_EXTERNAL_ROM:
     JSR     CLEAR_SCREEN
     JSR     CLEAR_BUFFER
     JMP     $A000
+RESTART_BASIC:
+    JSR     LOWERCASE_MODE
+    JSR     SCROLL_MODE
+    JSR     CURSOR_HOME
+    JSR     CLEAR_SCREEN
+    JSR     CLEAR_BUFFER
+    JMP     RESTART
 
 
 ;-----------------------------------------------------
