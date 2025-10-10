@@ -1,7 +1,7 @@
 ISCNTC:
         jsr MONRDKEY
         bcc not_cntc
-        cmp #3
+        cmp #$03 ; Control-C
         bne not_cntc
         jmp is_cntc
 

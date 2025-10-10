@@ -179,6 +179,7 @@ RESET:
     STA     ACIA_CTRL
     JSR     INIT_VIA        ; Initialize VIA for joystick input
 WARM_RST:
+    JSR     STANDARD_KEYBOARD_MODE ; Set Minitel to standard keyboard mode
     JSR     CURSOR_OFF      ; Turn off cursor
     JSR     PAGE_MODE       ; Set page mode
     JSR     CLEAR_BUFFER
@@ -209,13 +210,16 @@ GOTO_WOZMON:
     JSR     SCROLL_MODE
     JSR     CURSOR_HOME
     JSR     CLEAR_SCREEN
+    JSR     CURSOR_ON      ; Turn ON cursor
     JSR     CLEAR_BUFFER
     JMP     START_WOZMON
 GOTO_BASIC:
+    JSR     EXTENDED_KEYBOARD_MODE ; Set Minitel to extended keyboard mode
     JSR     LOWERCASE_MODE
     JSR     SCROLL_MODE
     JSR     CURSOR_HOME
     JSR     CLEAR_SCREEN
+    JSR     CURSOR_ON      ; Turn ON cursor
     JSR     CLEAR_BUFFER
     JMP     COLD_START
 GOTO_ABOUT:
@@ -232,10 +236,12 @@ GOTO_EXTERNAL_ROM:
     JSR     CLEAR_BUFFER
     JMP     $A000
 RESTART_BASIC:
+    JSR     EXTENDED_KEYBOARD_MODE ; Set Minitel to extended keyboard mode
     JSR     LOWERCASE_MODE
     JSR     SCROLL_MODE
     JSR     CURSOR_HOME
     JSR     CLEAR_SCREEN
+    JSR     CURSOR_ON      ; Turn ON cursor
     JSR     CLEAR_BUFFER
     JMP     RESTART
 

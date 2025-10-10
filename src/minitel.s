@@ -23,14 +23,22 @@ PRO3           = $3B    ; PRO3 command
 ; Minitel special commands
 FNCT_STOP       = $6A    ; STOP function code
 FNCT_START      = $69    ; START function code
+ETENDU          = $41    ; EXTENDED keyboard command
 ROULEAU         = $43    ; Scroll mode command
 LOWERCASE       = $45    ; Lowercase mode command
 
 ; Minitel routing codes
 AIGUILLAGE_OFF  = $60    ; Routing OFF command
 AIGUILLAGE_ON   = $61    ; Routing ON command
-EMISSION_CLAVIER = $51   ; Keyboard as emitter
-RECEPTION_MODEM = $5A    ; Modem as receiver
+
+EMISSION_ECRAN    = $50
+EMISSION_CLAVIER  = $51
+EMISSION_MODEM    = $52
+EMISSION_PRISE    = $53
+RECEPTION_ECRAN   = $58
+RECEPTION_CLAVIER = $59
+RECEPTION_MODEM   = $5A
+RECEPTION_PRISE   = $5B
 
 RST  = $7F  ; Reset command
 CON  = $11  ; Cursor ON
@@ -258,6 +266,64 @@ LOWERCASE_MODE:
     
     ; Send LOWERCASE parameter
     lda #LOWERCASE        ; LOWERCASE (0x45)
+    jsr SEND_BYTE
+
+    jsr DOUBLE_DELAY    ; Wait a bit for Minitel to process command
+    
+    rts
+
+;-----------------------------------------------------
+; Send command to Minitel to enable extended keyboard
+;-----------------------------------------------------
+EXTENDED_KEYBOARD_MODE:
+    ; ESC 0x3B 0x69 0x59 0x41
+    ; Send ESC
+    lda #ESC
+    jsr SEND_BYTE
+
+    ; Send PRO3 sequence
+    lda #PRO3
+    jsr SEND_BYTE
+    
+    ; Send START command
+    lda #FNCT_START      ; START (0x69)
+    jsr SEND_BYTE
+    
+    ; Send KEYBOARD parameter
+    lda #RECEPTION_CLAVIER        ; KEYBOARD (0x59)
+    jsr SEND_BYTE
+
+    ; Send ETENDU parameter
+    lda #ETENDU        ; ETENDU (0x41)
+    jsr SEND_BYTE
+
+    jsr DOUBLE_DELAY    ; Wait a bit for Minitel to process command
+    
+    rts
+
+;-----------------------------------------------------
+; Send command to Minitel to enable standard keyboard
+;-----------------------------------------------------
+STANDARD_KEYBOARD_MODE:
+    ; ESC 0x3B 0x69 0x59 0x41
+    ; Send ESC
+    lda #ESC
+    jsr SEND_BYTE
+
+    ; Send PRO3 sequence
+    lda #PRO3
+    jsr SEND_BYTE
+
+    ; Send STOP command
+    lda #FNCT_STOP      ; STOP (0x6A)
+    jsr SEND_BYTE
+
+    ; Send KEYBOARD parameter
+    lda #RECEPTION_CLAVIER        ; KEYBOARD (0x59)
+    jsr SEND_BYTE
+
+    ; Send ETENDU parameter
+    lda #ETENDU        ; ETENDU (0x41)
     jsr SEND_BYTE
 
     jsr DOUBLE_DELAY    ; Wait a bit for Minitel to process command
