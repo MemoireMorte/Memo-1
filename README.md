@@ -43,6 +43,9 @@ Port B RW ------------------ $8000
 Port A RW ------------------ $8001
 Data direction register B -- $8002
 Data direction register A -- $8003
+Timer 1 low byte ----------- $8004
+Timer 1 high byte ---------- $8005
+Audio control register ----- $800B
 ```
 
 Atari 2600 joystick 0 is on VIA Port A bit[0..4] and joystick 1 is on VIA Port B bit[0..4] as follow
@@ -69,6 +72,33 @@ Sample:
 RUN
 ```
 
+Basic routine `BEEP` plays a square wave tone on Port B bit 7. At 1Mhz here is the equivalence table for each note: 
+```
+DO 261.63Hz  = 1911
+DO# 277.18Hz = 1808
+RE 293.66Hz  = 1702
+RE# 311.13Hz = 1607
+MI 329.63Hz  = 1517
+FA 349.23Hz  = 1432
+FA# 369.99Hz = 1350
+SOL 392.00Hz = 1275
+SOL# 415.30Hz= 1203
+LA 440Hz     = 1136
+LA# 466.16Hz = 1073
+SI 493.88Hz  = 1010
+```
+Play an A or LA 440 for a while then stop with BEEP 0: 
+```BASIC
+10 BEEP 1136
+20 K = 40
+30 FOR I=0 TO K STEP 1
+40   PRINT I
+50 NEXT I
+60 BEEP 0
+70 END
+RUN
+```
+
 ### ACIA
 ```
 ACIA data register ----- $9000
@@ -82,9 +112,7 @@ ACIA control register -- $9003
 Upon startup, the Memo-1 inits the ACIA, the VIA, sends commands to the Minitel to change the baud rate and disable local echo, then presents a simple menu system with several options: press '1' to launch WOZMON (a monitor program by Steve Wozniak for memory examination and modification), press '2' to start MS-BASIC (Microsoft BASIC interpreter), press '3' to execute code from an external ROM slot (this option only appears if an external ROM is detected at address $A000), or press 'A' to view an about screen with system information, license and credits.  
 The menu automatically detects an external ROM's presence and adapts the available options accordingly by looking at the first opcode at $A000. If it reads $A0 it assumes there is nothing there (6502 always read high nibble of the address when accessing an address where no hardware responds). If your code has to start with $A0 (LDY) then just add $EA (NOP) before and question your lifestyle, you barbarian (who would start a code by stuffing the Y register?).  
 If the start menu detects a ROM in external slot, it will read a personalised name from the last 8 bytes of the rom, from $BFF8 to $BFFF. 
-If $BFF8 is $00 or $FF it will skip reading, and just display 'External Slot' in the menu.  
-
-The Restart Basic (warm start) goes to the warm start of basic (please follow!) and should not be used before having selected the MS-BASIC menu entry. It's purpose is to not lose wip when using the reset button. If you use the reset button and select MS-BASIC again, it will go through memory initialisation again and loose your progress. Warm-start option doesn't re-init memory.
+If $BFF8 is $00 or $FF it will skip reading, and just display 'External Slot' in the menu.
 
 ## Terminal
 
@@ -104,13 +132,6 @@ cd src
 ca65 -D memo msbasic.s -o ../out/memo.o &&
 ld65 -C memo.cfg ../out/memo.o -o ../out/memo.bin -Ln ../out/memo.lbl
 ```
-
-## Use BASIC with a minitel
-There is not much to say, beside that the keyboard lacks some characters.  
-The @ symbole is still line delete.  
-Ctrl+C Breaks running code (it only works in extended keyboard mode, which is automatically activated from the menu when selecting basic).  
-_ (underscore) is the correction key ( `10 PRINT"Hello_"` will be interpreted as `10 PRINT"Hell"` ). To get the _ character, on some keyboards it's Ctrl+6.  
-
 
 ## Licenses & credits
 

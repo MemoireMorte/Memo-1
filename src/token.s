@@ -77,6 +77,9 @@
 .ifdef KBD
 		keyword_rts "PRT", PRT
 .endif
+.ifdef MEMO
+		keyword_rts "BEEP", BEEP
+.endif
 		keyword_rts "NEW", NEW
 
 		count_tokens

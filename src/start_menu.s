@@ -148,7 +148,7 @@ PRINT_FF:
     RTS
 
 INIT_VIA:
-    LDA     #%00000000      ; Set all bits of port B as input
+    LDA     #%10000000      ; Set all bits of port B as input (except PB7 for sound)
     STA     VIA_DDRB        ; Set VIA data direction register B
     LDA     #%00000000      ; Set all bits of port A as input
     STA     VIA_DDRA        ; Set VIA data direction register A
@@ -168,6 +168,28 @@ INIT_SERIAL_4800:
     STA     ACIA_CMD
     RTS
 
+SMALL_DELAY:    
+; just a dumb loop for now
+    ldx #$80
+@loop1:
+    ldy #$FF
+@loop2:
+    dey
+    bne @loop2
+    dex
+    bne @loop1
+    rts
+
+WELCOME_TONE:
+    JSR     PLAY_TONE_DO
+    JSR     SMALL_DELAY
+    JSR     PLAY_TONE_MI
+    JSR     SMALL_DELAY
+    JSR     PLAY_TONE_FA
+    JSR     SMALL_DELAY
+    JSR     STOP_TONE
+    RTS
+
 RESET:
     CLD                     ; Clear decimal arithmetic mode.
     JSR     INIT_BUFFER     ; Initialize input buffer.
@@ -184,6 +206,7 @@ WARM_RST:
     JSR     PAGE_MODE       ; Set page mode
     JSR     CLEAR_BUFFER
     JSR     DISPLAY_MENU    ; Display menu
+    JSR     WELCOME_TONE    ; Play welcome tone
     ; Fall through to WAIT_FOR_KEY
     
 WAIT_FOR_KEY:
@@ -206,6 +229,7 @@ WAIT_FOR_KEY:
     JMP     WAIT_FOR_KEY    ; Invalid key, wait again.
 
 GOTO_WOZMON:
+    JSR     SMALL_BEEP
     JSR     UPPERCASE_MODE
     JSR     SCROLL_MODE
     JSR     CURSOR_HOME
@@ -214,6 +238,7 @@ GOTO_WOZMON:
     JSR     CLEAR_BUFFER
     JMP     START_WOZMON
 GOTO_BASIC:
+    JSR     SMALL_BEEP
     JSR     EXTENDED_KEYBOARD_MODE ; Set Minitel to extended keyboard mode
     JSR     LOWERCASE_MODE
     JSR     SCROLL_MODE
@@ -223,11 +248,13 @@ GOTO_BASIC:
     JSR     CLEAR_BUFFER
     JMP     COLD_START
 GOTO_ABOUT:
+    JSR     SMALL_BEEP
     JSR     CURSOR_HOME
     JSR     CLEAR_SCREEN
     JSR     CLEAR_BUFFER
     JMP     DISPLAY_ABOUT
 GOTO_EXTERNAL_ROM:
+    JSR     SMALL_BEEP
     LDA     $A000           ; Check for first byte of ROM
     CMP     #$A0            ; Is it $A000 ?
     BEQ     WAIT_FOR_KEY    ; No, skip input and wait for key.
@@ -236,6 +263,7 @@ GOTO_EXTERNAL_ROM:
     JSR     CLEAR_BUFFER
     JMP     $A000
 RESTART_BASIC:
+    JSR     SMALL_BEEP
     JSR     EXTENDED_KEYBOARD_MODE ; Set Minitel to extended keyboard mode
     JSR     LOWERCASE_MODE
     JSR     SCROLL_MODE
@@ -245,6 +273,11 @@ RESTART_BASIC:
     JSR     CLEAR_BUFFER
     JMP     RESTART
 
+SMALL_BEEP:
+    JSR     PLAY_TONE_FA
+    JSR     SMALL_DELAY
+    JSR     STOP_TONE
+    RTS
 
 ;-----------------------------------------------------
 ; About Section
