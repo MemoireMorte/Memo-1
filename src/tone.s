@@ -45,180 +45,180 @@
 PLAY_TONE_DO3:
                 ldx #$77
                 ldy #$07
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_DO_SHARP3:
                 ldx #$10
                 ldy #$07
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_RE3:
                 ldx #$A6
                 ldy #$06
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_RE_SHARP3:
                 ldx #$47
                 ldy #$06
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_MI3:
                 ldx #$EC
                 ldy #$05
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_FA3:
                 ldx #$98
                 ldy #$05
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_FA_SHARP3:
                 ldx #$46
                 ldy #$05
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_SOL3:
                 ldx #$FB
                 ldy #$04
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_SOL_SHARP3:
                 ldx #$B3
                 ldy #$04
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_LA3:
                 ldx #$70
                 ldy #$04
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_LA_SHARP3:
                 ldx #$31
                 ldy #$04
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_SI3:
                 ldx #$F2
                 ldy #$03
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_DO4:
                 ldx #$BC
                 ldy #$03
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_DO_SHARP4:
                 ldx #$88
                 ldy #$03
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_RE4:
                 ldx #$53
                 ldy #$03
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_RE_SHARP4:
                 ldx #$24
                 ldy #$03
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_MI4:
                 ldx #$F6
                 ldy #$02
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_FA4:
                 ldx #$CC
                 ldy #$02
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_FA_SHARP4:
                 ldx #$A3
                 ldy #$02
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_SOL4:
                 ldx #$7E
                 ldy #$02
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_SOL_SHARP4:
                 ldx #$59
                 ldy #$02
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_LA4:
                 ldx #$38
                 ldy #$02
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_LA_SHARP4:
                 ldx #$18
                 ldy #$02
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_SI4:
                 ldx #$F9
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_DO5:
                 ldx #$DE
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_DO_SHARP5:
                 ldx #$C4
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_RE5:
                 ldx #$AA
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_RE_SHARP5:
                 ldx #$92
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_MI5:
                 ldx #$7B
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_FA5:
                 ldx #$66
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_FA_SHARP5:
                 ldx #$52
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_SOL5:
                 ldx #$3F
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_SOL_SHARP5:
                 ldx #$2D
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_LA5:
                 ldx #$1C
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_LA_SHARP5:
                 ldx #$0C
                 ldy #$01
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts
 PLAY_TONE_SI5:
                 ldx #$FD
                 ldy #$00
-                jmp PLAY_TONE
+                jsr PLAY_TONE
                 rts 
