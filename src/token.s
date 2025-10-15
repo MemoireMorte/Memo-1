@@ -78,7 +78,7 @@
 		keyword_rts "PRT", PRT
 .endif
 .ifdef MEMO
-		keyword_rts "BEEP", BEEP
+		keyword_rts "TONE", TONE
 .endif
 		keyword_rts "NEW", NEW
 

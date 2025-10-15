@@ -251,80 +251,6 @@ STOP_TONE:
                 pla
                 rts
 
-; Frequencies for notes (approximate, with 1MHz clock)
-; #$777 = DO 261.63Hz ; 1000000 / 261.63 = 3822.66 ; 3822.66 / 2 = 1911.33 = $777
-; #$710 = DO# 277.18Hz ; 1000000 / 277.18 = 3615.75 ; 3615.75 / 2 = 1807.87 = $710
-; #$6A6 = RE 293.66Hz ; 1000000 / 293.66 = 3405.06 ; 3405.06 / 2 = 1702.53 = $6A6
-; #$647 = RE# 311.13Hz ; 1000000 / 311.13 = 3214.29 ; 3214.29 / 2 = 1607.14 = $647
-; #$5EC = MI 329.63Hz ; 1000000 / 329.63 = 3033.96 ; 3033.96 / 2 = 1516.98 = $5EC
-; #$598 = FA 349.23Hz ; 1000000 / 349.23 = 2864.66 ; 2864.66 / 2 = 1432.33 = $598
-; #$546 = FA# 369.99Hz ; 1000000 / 369.99 = 2700.00 ; 2700.00 / 2 = 1350.00 = $546
-; #$4FB = SOL 392.00Hz ; 1000000 / 392.00 = 2551.02 ; 2551.02 / 2 = 1275.51 = $4FB
-; #$4B3 = SOL# 415.30Hz ; 1000000 / 415.30 = 2405.88 ; 2405.88 / 2 = 1202.94 = $4B3
-; #$470 = LA 440Hz ; 1000000 / 440 = 2272.73 ; 2272.73 / 2 = 1136.36 = $470
-; #$431 = LA# 466.16Hz ; 1000000 / 466.16 = 2145.45 ; 2145.45 / 2 = 1072.73 = $431
-; #$3F2 = SI 493.88Hz ; 1000000 / 493.88 = 2020.41 ; 2020.41 / 2 = 1010.20 = $3F2
-
-PLAY_TONE_DO:
-                ldx #$77
-                ldy #$07
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_DO_SHARP:
-                ldx #$10
-                ldy #$07
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_RE:
-                ldx #$A6
-                ldy #$06
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_RE_SHARP:
-                ldx #$47
-                ldy #$06
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_MI:
-                ldx #$EC
-                ldy #$05
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_FA:
-                ldx #$98
-                ldy #$05
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_FA_SHARP:
-                ldx #$46
-                ldy #$05
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_SOL:
-                ldx #$FB
-                ldy #$04
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_SOL_SHARP:
-                ldx #$B3
-                ldy #$04
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_LA:
-                ldx #$70
-                ldy #$04
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_LA_SHARP:
-                ldx #$31
-                ldy #$04
-                jmp PLAY_TONE
-                rts
-PLAY_TONE_SI:
-                ldx #$F2
-                ldy #$03
-                jmp PLAY_TONE
-                rts
 
 
 LOAD:
@@ -409,6 +335,7 @@ IRQ:
                 pla
                 rti
 
+.include "tone.s"
 .include "minitel.s"
 .include "start_menu.s"
 .include "wozmon.s"

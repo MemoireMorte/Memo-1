@@ -72,7 +72,7 @@ Sample:
 RUN
 ```
 
-Basic routine `BEEP` plays a square wave tone on Port B bit 7. At 1Mhz here is the equivalence table for each note: 
+Basic routine `TONE` plays a square wave tone on Port B bit 7. At 1Mhz here is the equivalence table for each note: 
 ```
 DO 261.63Hz  = 1911
 DO# 277.18Hz = 1808
@@ -87,14 +87,14 @@ LA 440Hz     = 1136
 LA# 466.16Hz = 1073
 SI 493.88Hz  = 1010
 ```
-Play an A or LA 440 for a while then stop with BEEP 0: 
+Play an A or LA 440 for a while then stop with TONE 0: 
 ```BASIC
-10 BEEP 1136
+10 TONE 1136
 20 K = 40
 30 FOR I=0 TO K STEP 1
 40   PRINT I
 50 NEXT I
-60 BEEP 0
+60 TONE 0
 70 END
 RUN
 ```
