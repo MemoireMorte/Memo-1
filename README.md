@@ -45,7 +45,7 @@ Data direction register B -- $8002
 Data direction register A -- $8003
 Timer 1 low byte ----------- $8004
 Timer 1 high byte ---------- $8005
-Audio control register ----- $800B
+Auxiliary Control Register - $800B
 ```
 
 Atari 2600 joystick 0 is on VIA Port A bit[0..4] and joystick 1 is on VIA Port B bit[0..4] as follow
