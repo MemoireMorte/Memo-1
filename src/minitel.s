@@ -58,6 +58,91 @@ LEFT_HALF_GRAPHICAL_CHAR = $35 ; %00110101 : Character to display a left half gr
 RIGHT_HALF_GRAPHICAL_CHAR = $6A ; %01101010 : Character to display a right half graphical char in semi-graphical mode
 PLAIN_GRAPHICAL_CHAR = $5F ; %01011111 : Character to display a plain graphical char in semi-graphical mode
 
+; TODO not tested yet; minitel printer
+; Send to printer sequence:
+;$13 DC3
+;$54 T
+;$13 DC3
+;$5C \
+;$1B ESC
+;$21 !
+;$38 8
+;$0C FormFeed
+;$1B ESC
+;$21 !
+;$2D -
+;$38 8
+;
+;... whatever to print ...
+;
+;$1B ESC
+;$2D -
+;$3A :
+;$1B ESC
+;$35 5
+;$40 @
+;$1B ESC
+;$21 !
+;$3A :
+;$13 DC3
+;$5C \
+;$13 DC3
+;$54 T
+START_PRINTER:
+    lda #$13
+    jsr SEND_BYTE
+    lda #$54
+    jsr SEND_BYTE
+    lda #$13
+    jsr SEND_BYTE
+    lda #$5C
+    jsr SEND_BYTE
+    lda #ESC
+    jsr SEND_BYTE
+    lda #$21
+    jsr SEND_BYTE
+    lda #$38
+    jsr SEND_BYTE
+    lda #$0C
+    jsr SEND_BYTE
+    lda #ESC
+    jsr SEND_BYTE
+    lda #$21
+    jsr SEND_BYTE
+    lda #$2D
+    jsr SEND_BYTE
+    lda #$38
+    jsr SEND_BYTE
+    rts
+
+CLOSE_PRINTER:
+    lda #ESC
+    jsr SEND_BYTE
+    lda #$2D
+    jsr SEND_BYTE
+    lda #$3A
+    jsr SEND_BYTE
+    lda #ESC
+    jsr SEND_BYTE
+    lda #$35
+    jsr SEND_BYTE
+    lda #$40
+    jsr SEND_BYTE
+    lda #ESC
+    jsr SEND_BYTE
+    lda #$21
+    jsr SEND_BYTE
+    lda #$3A
+    jsr SEND_BYTE
+    lda #$13
+    jsr SEND_BYTE
+    lda #$5C
+    jsr SEND_BYTE
+    lda #$13
+    jsr SEND_BYTE
+    lda #$54
+    jsr SEND_BYTE
+    rts
 
 ;-----------------------------------------------------
 ; Delay loop to allow Minitel time to process command
