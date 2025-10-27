@@ -72,6 +72,7 @@ PLAIN_GRAPHICAL_CHAR = $5F ; %01011111 : Character to display a plain graphical 
 ;$21 !
 ;$2D -
 ;$38 8
+; Wait for 300ms (or 300 000 cycles - ish)
 ;
 ;... whatever to print ...
 ;
@@ -113,6 +114,18 @@ START_PRINTER:
     jsr SEND_BYTE
     lda #$38
     jsr SEND_BYTE
+delay300ms:
+    ldx #$FF         ; 	2 cycles
+@delay_loop1:
+    ldy #$FF         ; 	2 cycles
+@delay_loop2:
+    nop              ; 	2 cycles
+    dey              ; 	2 cycles
+    bne @delay_loop2 ; 	2 cycles if branch taken, 3 if not
+                     ;  256 * (2 + 2 + 2) = 1536 cycles
+    dex              ; 	2 cycles
+    bne @delay_loop1 ; 	2 cycles if branch taken, 3 if not
+                     ;  256 * (2 + 1536) = 393728 cycles
     rts
 
 CLOSE_PRINTER:
