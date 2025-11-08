@@ -141,7 +141,7 @@ ld65 -C memo.cfg ../out/memo.o -o ../out/memo.bin -Ln ../out/memo.lbl
 
 A 65C02 chip set based computer, for fun and for learning purposes.  
 By Benoit Aveline, aka Memoire Morte  
-[(c) 2025 - Creative Commons BY-NC](https://creativecommons.org/licenses/by-nc/4.0/)
+[(c) 2025 - Creative Commons BY-NC-SA]([https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc-sa/4.0/))
 
 Special thanks to:
  - [Ben Eater](https://eater.net/6502) for his 6502 computer design and tutorials - *CC-BY License*
