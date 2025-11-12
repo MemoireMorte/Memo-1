@@ -1,4 +1,4 @@
-;.feature force_range
+.feature force_range
 .debuginfo +
 
 .setcpu "65C02"
