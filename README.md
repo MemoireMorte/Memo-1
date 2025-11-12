@@ -137,6 +137,12 @@ ca65 -D memo msbasic.s -o ../out/memo.o &&
 ld65 -C memo.cfg ../out/memo.o -o ../out/memo.bin -Ln ../out/memo.lbl
 ```
 
+If you get an error about the longbranch.mac not being included, you need to include the asminc folder. For exemple: 
+
+```BASH
+ca65 -I /usr/local/cc65/share/cc65/asminc -D memo msbasic.s -o ../out/memo.o
+```
+
 ## Licenses & credits
 
 A 65C02 chip set based computer, for fun and for learning purposes.  
