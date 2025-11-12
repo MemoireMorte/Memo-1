@@ -481,8 +481,8 @@ QT_BYTES_FREE:
         .byte   CR,0
   .elseif .def(APPLE)
         .byte   0
-  .else
-        .byte   CR,LF,CR,LF
+;  .else
+;        .byte   CR,LF,CR,LF
   .endif
 QT_BASIC:
   .ifdef OSI
@@ -513,6 +513,9 @@ QT_BASIC:
         .byte   LF,CR,LF
 		.byte	"APPLE BASIC V1.1"
   .endif
+  .ifdef MEMO
+        .byte   " - MEMO-1 BASIC"
+  .endif
   .ifndef CONFIG_CBM_ALL
         .byte   CR,LF
     .ifdef MICROTAN
@@ -523,7 +526,7 @@ QT_BASIC:
     .elseif .def(SYM1)
         .byte   "COPYRIGHT 1978 SYNERTEK SYSTEMS CORP."
     .else
-        .byte   "COPYRIGHT 1977 BY MICROSOFT CO."
+        .byte   " COPYRIGHT 1977 BY MICROSOFT CO."
     .endif
         .byte   CR,LF
       .ifndef AIM65
