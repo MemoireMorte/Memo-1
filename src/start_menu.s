@@ -353,7 +353,7 @@ ABOUT_MSG2:
 ABOUT_MSG3:
     .asciiz "by Benoit Aveline - aka Memoire Morte"
 ABOUT_MSG4:
-    .asciiz "(c) 2025 - Creative Commons BY-NC"
+    .asciiz "(c) 2025 - Creative Commons BY-NC-SA"
 ABOUT_MSG5:
     .asciiz "Full source and derived licenses at:    https://github.com/MemoireMorte/Memo-1"
 ABOUT_MSG11:
