@@ -20,8 +20,6 @@ MENU_BASIC_MSG:
     .asciiz "2- MS-BASIC"
 MENU_EXTERNAL_ROM_MSG:
     .asciiz "3- "
-MENU_EXTERNAL_ROM_NAME_MSG:
-    .asciiz "External Slot"
 MENU_ABOUT_MSG:
     .asciiz "A- About"
 MENU_RESTART_MSG:
@@ -64,41 +62,29 @@ DISPLAY_MENU:
 ; Check if external ROM is present and print external ROM message if present
 CHECK_ROM:
     LDA     $A000           ; Check for first byte of ROM
-    CMP     #$A0            ; Is it $A000 ?
-    BEQ     @no_rom         ; No, skip external ROM option.
+    CMP     #$A0            ; Is it $A0 ? (with 6502, void pointing address reads as the high byte of the address)
+    BEQ     @print_about_menu        ; No, skip external ROM option.
     ; ROM is present, show the external ROM menu option
     LDA     #<MENU_EXTERNAL_ROM_MSG  ; Load low byte of external ROM message address
     LDY     #>MENU_EXTERNAL_ROM_MSG  ; Load high byte of external ROM message address
     JSR     PRINT_STRING
-    LDA     $BFF8       ; Read the name of the external ROM from its header
-    CMP     #$FF        ; Check if it's $FF (no name)
-    BEQ     @no_rom_name
-    CMP     #$00        ; Check if it's $00 (no name)
-    BEQ     @no_rom_name
-    LDA     $BFF8
+    LDA     $A000       ; Read the name of the external ROM from its header
     JSR     ECHO
-    LDA     $BFF9
+    LDA     $A001
     JSR     ECHO
-    LDA     $BFFA
+    LDA     $A002
     JSR     ECHO
-    LDA     $BFFB
+    LDA     $A003
     JSR     ECHO
-    LDA     $BFFC
+    LDA     $A004
     JSR     ECHO
-    LDA     $BFFD
+    LDA     $A005
     JSR     ECHO
-    LDA     $BFFE
+    LDA     $A006
     JSR     ECHO
-    LDA     $BFFF
+    LDA     $A007
     JSR     ECHO
     JSR     PRINT_CR_LF
-    JMP     @print_about_menu
-@no_rom_name:           ; Print the name of the external ROM
-    LDA     #<MENU_EXTERNAL_ROM_NAME_MSG ; Load low byte of "External Slot" message address
-    LDY     #>MENU_EXTERNAL_ROM_NAME_MSG ; Load high byte of "External Slot" message address
-    JSR     PRINT_STRING
-    JSR     PRINT_CR_LF
-@no_rom:
 @print_about_menu:
     JSR     PRINT_CR_LF
     JSR     PRINT_CR_LF
@@ -261,7 +247,7 @@ GOTO_EXTERNAL_ROM:
     JSR     CURSOR_HOME
     JSR     CLEAR_SCREEN
     JSR     CLEAR_BUFFER
-    JMP     $A000
+    JMP     $A008           ; Jump to external ROM start address
 RESTART_BASIC:
     JSR     SMALL_BEEP
     JSR     EXTENDED_KEYBOARD_MODE ; Set Minitel to extended keyboard mode
