@@ -1,6 +1,7 @@
 # Memo-1
 
 A simple 65C02 based computer for fun and learning purpose.
+A bill of materials can be found alongside the roms [here](https://drive.google.com/drive/folders/1BzeLR8J1PL8A9I6MVF4b0QX1uaWHdG0w?usp=sharing)
 
 ## Technical information
 
