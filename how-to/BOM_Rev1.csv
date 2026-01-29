@@ -1,0 +1,46 @@
+﻿Cable;1;;DIN-5 Cable with all pins connected;https://www.amazon.fr/dp/B006H0E6RU/
+;;;;
+Memo-1 motherboard Rev-1 BOM;;;;
+;;;;
+Cable;1;;DIN-5 Cable with all pins connected;https://www.amazon.fr/dp/B006H0E6RU/
+;;;;
+Reference;Qty;Value;Description;Link
+BZ1;1;Buzzer;Passive piezo buzzer;https://www.amazon.fr/dp/B09KY869MB
+C1,C3,C4,C5,C6,C7,C8;7;0.1uF;Ceramic capacitor (ceram cap notation: 104);https://www.amazon.fr/AUKENIEN-Condensateur-Ceramique-Kit-Condensateurs/dp/B09NLZBC7R/
+C2;1;30p;Ceramic capacitor (ceram cap notation: 300);https://www.amazon.fr/AUKENIEN-Condensateur-Ceramique-Kit-Condensateurs/dp/B09NLZBC7R/
+D1;1;Power;5mm LED;https://www.amazon.fr/%C3%A9lectroluminescente-luminosit%C3%A9-multicolore-scientifiques-%C3%A9lectronique/dp/B0C3VGHGR1/
+J1,J2;2;DSUB-9;DSUB-9 Male Horizontal P2.77x2.84mm EdgePinOffset7.70mm MountingHolesOffset9.12mm;https://www.amazon.fr/gp/product/B07BQFDNFR/
+J3;1;DIN-5;MIDI / DIN-5 female connector;https://www.amazon.fr/fivekim-Connector-Ds-5-01-Connectors-Terminals/dp/B086BXYB7F/
+J4;1;Ext;2x16 PinHeader P2.54mm angle;https://www.amazon.fr/ZDE-2-54mm-Header-Connector-Breadboard/dp/B0F7R7Q5NF/
+J5;1;DC IN;Female DC Barrel Jack 5.5mm X 2.1mm;https://www.amazon.fr/PATIKIL-Alimentation-Connecteur-Montage-Femelle/dp/B0CLHVZRXX/
+R1,R2,R4,R17;4;1k;1/4W 5% Resistor;https://www.amazon.fr/ALLECIN-Assortiment-Electronique-Resistances-%C3%89lectronique/dp/B0BTP6WYH1/
+R3;1;1M;1/4W 5% Resistor;https://www.amazon.fr/ALLECIN-Assortiment-Electronique-Resistances-%C3%89lectronique/dp/B0BTP6WYH1/
+R5,R6,R7,R8,R9,R10,R11,R12,R13,R14;10;10k;1/4W 5% Resistor;https://www.amazon.fr/ALLECIN-Assortiment-Electronique-Resistances-%C3%89lectronique/dp/B0BTP6WYH1/
+R15,R18;2;4.7k;1/4W 5% Resistor;https://www.amazon.fr/ALLECIN-Assortiment-Electronique-Resistances-%C3%89lectronique/dp/B0BTP6WYH1/
+R16;1;330R;1/4W 5% Resistor;https://www.amazon.fr/ALLECIN-Assortiment-Electronique-Resistances-%C3%89lectronique/dp/B0BTP6WYH1/
+SW1;1;RESET;Momentary 6x6 tactile push button;https://www.amazon.fr/Youmile-100Pcs-6x6x4-3mm-Momentary-Tactile/dp/B07XWXV1TS/
+SW2;1;Power Input;Slide switch Single Pole Double Throw (SPDT) P2.54mm;https://www.amazon.fr/RUNCCI-YUN-Interrupteur-Glissi%C3%A8re-Positions-Electronic/dp/B09TVFF6KW/
+U1;1;CPU;W65C02S (can be replaced with a R65C02);https://www.mouser.fr/ProductDetail/955-W65C02S6TPG-14
+U2;1;VIA;W65C22S (can be replaced with a regular 6522. Sound volume will be lower though);https://www.mouser.fr/ProductDetail/955-W65C22S6TPG-14
+U3;1;RAM;HM62256B (can be replaced with AS6C62256-55PCN);https://www.mouser.fr/ProductDetail/913-AS6C62256-55PCN
+U4;1;ROM;28C256 (can be replaced with a 27128 but pin1 needs to be unconnected (lift it from the socket));https://www.mouser.fr/ProductDetail/556-AT28C25615PU
+U5;1;NAND;74LS00;https://www.amazon.fr/BOJACK-Valeurs-Schottky-puissance-Comprenant/dp/B08LY4NS72/
+U6;1;OR;74LS32;https://www.amazon.fr/BOJACK-Valeurs-Schottky-puissance-Comprenant/dp/B08LY4NS72/
+U7;1;AND;74LS08;https://www.amazon.fr/BOJACK-Valeurs-Schottky-puissance-Comprenant/dp/B08LY4NS72/
+U8;1;ACIA;6551 (cannot be replaced with a W65C51 as some hardware bugs will prevent it to work with a minitel);https://www.ebay.fr/itm/154443689127
+U9;1;5V;Mini DC-DC step-down converter (might be replaced with a 7805 regulator, not tested);https://www.amazon.fr/Heevhas-step-down-dalimentation-Ajustable-contr%C3%B4leur/dp/B0D8Q53LXV/
+Y1;1;1.8432Mhz;Quartz;https://www.mouser.fr/ProductDetail/774-MP018B
+Y2;1;1Mhz;DIP-14 Oscillator;https://www.mouser.fr/ProductDetail/774-MXO45-3C-1.0
+Optional (but recommanded);;;;
+U1,U2;2;;DIP-40 wide socket;https://www.amazon.fr/dp/B01LZKLTJ6/
+U3,U4,U8;3;;DIP-28 wide socket;https://www.amazon.fr/dp/B01LZKLTJ6/
+U5,U6,U7;3;;DIP-14 narrow socket;https://www.amazon.fr/dp/B01LZKLTJ6/
+;;;;
+Memo-1 Rom Extension Rev-1;;;;
+;;;;
+Reference;Qty;Value;Description;Link
+C1;1;0.1uF;Ceramic capacitor;https://www.amazon.fr/AUKENIEN-Condensateur-Ceramique-Kit-Condensateurs/dp/B09NLZBC7R/
+U1;1;ROM;28C64;https://www.mouser.fr/ProductDetail/556-AT28C64B15PU
+J1;1;Ext;2x16 Pin Socket P2.54mm;https://www.amazon.fr/Ruilogod-2-54mm-2x16-Pin-connecteur-femelle/dp/B0B1T6X1X6/
+Optional (but recommanded);;;;
+U1;1;;DIP-28 wide socket;https://www.amazon.fr/dp/B0DRHXX3RJ/
