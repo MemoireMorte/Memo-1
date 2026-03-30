@@ -11,6 +11,9 @@ ZP_START3 = $62
 ZP_START3A = $6D
 ZP_START4 = $6F
 
+; KCS zero page block ($F4-$F9, just below STACK_TOP)
+ZP_KCS_START = $F4
+
 ; extra/override ZP variables
 USR := GORESTART
 
