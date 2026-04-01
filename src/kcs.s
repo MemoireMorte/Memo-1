@@ -21,7 +21,7 @@ KCS_LEN_LO:     .res 1  ; Save block length, low byte
 KCS_LEN_HI:     .res 1  ; Save block length, high byte
 KCS_CHECKSUM:   .res 1  ; XOR checksum accumulator
 
-.code
+.segment "KCS"
 
 ; Tape block magic bytes identifying a Memo-1 KCS block
 KCS_MAGIC_0 = $4D   ; 'M'
@@ -301,4 +301,259 @@ KCS_SAVE:
     STZ KCS_OUT_STATE
     STZ KCS_PORT
 
+    RTS
+
+; ============================================================
+; KCS LOAD ROUTINES
+; ============================================================
+
+; Read port: tri-state buffer driven by audio comparator/Schmitt trigger
+; Address TBD — update once the input circuit is finalised
+; Hardware requirement: reading KCS_PORT_IN must place the current
+; audio bit on D0 of the data bus.
+KCS_PORT_IN       = $B001
+
+; Half-period classification threshold (iterations, not cycles)
+; Loop body: 16 cycles/iteration @ 1 MHz
+;   1200 Hz half-period (~417 cycles) → ~26 iterations
+;   2400 Hz half-period (~208 cycles) → ~13 iterations
+;   Threshold midpoint: 19  (valid for ±10% cassette speed)
+KCS_HALF_THRESHOLD = 19
+
+; KCS_OUT_STATE ($F4) is unused during LOAD (output is idle).
+; KCS_SKIP_ONE_EDGE and KCS_MEASURE_HALF both use it as a
+; scratch register to hold the sampled input level.
+
+;-----------------------------------------------------
+; Wait for input level to change (consume one half-period)
+; Uses KCS_OUT_STATE to hold the initial level for comparison
+; Input:  none
+; Output: none
+; Modifies: A
+;-----------------------------------------------------
+KCS_SKIP_ONE_EDGE:
+    LDA KCS_PORT_IN      ; sample current level
+    AND #$01
+    STA KCS_OUT_STATE    ; save for comparison
+@wait:
+    LDA KCS_PORT_IN
+    AND #$01
+    CMP KCS_OUT_STATE
+    BEQ @wait            ; still same level
+    RTS
+
+;-----------------------------------------------------
+; Wait for A half-period boundaries (A transitions)
+; Input:  A = number of edges to consume (must be > 0)
+; Output: none
+; Modifies: A, X
+;-----------------------------------------------------
+KCS_SKIP_EDGES:
+    TAX                  ; X = edge count
+@loop:
+    JSR KCS_SKIP_ONE_EDGE
+    DEX
+    BNE @loop
+    RTS
+
+;-----------------------------------------------------
+; Measure the current half-period duration
+; Samples input state, counts iterations until it changes
+; Loop body: 16 cycles/iter (INX + BEQ + LDA abs + AND + CMP zp + BEQ)
+; Returns: C=1 → short (< KCS_HALF_THRESHOLD iter) = 2400 Hz = 1-bit
+;          C=0 → long (≥ KCS_HALF_THRESHOLD iter) = 1200 Hz = 0-bit
+;                or timeout (X wrapped to 0, ~4 ms with no edge)
+; Modifies: A, X
+;-----------------------------------------------------
+KCS_MEASURE_HALF:
+    LDA KCS_PORT_IN      ; 4
+    AND #$01             ; 2
+    STA KCS_OUT_STATE    ; 3 - save initial state
+    LDX #$00             ; 2
+@loop:
+    INX                  ; 2
+    BEQ @timeout         ; 3/2 - X wrapped: no edge in 255 iterations
+    LDA KCS_PORT_IN      ; 4
+    AND #$01             ; 2
+    CMP KCS_OUT_STATE    ; 3
+    BEQ @loop            ; 3/2 - still same level
+    ; Level changed: classify by iteration count
+    CPX #KCS_HALF_THRESHOLD   ; C set if X >= threshold (long = 0-bit)
+    BCS @long
+    SEC                  ; X < threshold: short = 1-bit
+    RTS
+@long:
+    CLC                  ; X >= threshold: long = 0-bit
+    RTS
+@timeout:
+    ; X wrapped to 0: no edge seen in ~4 ms (signal absent or DC stuck)
+    ; CLC makes this indistinguishable from a genuine long half-period.
+    ; In KCS_WAIT_LEADER this is harmless (BCC @reset keeps looping).
+    ; In @find_start it will cause a false exit, after which KCS_SKIP_ONE_EDGE
+    ; hangs waiting for an edge that never arrives — machine must be reset.
+    CLC
+    RTS
+
+;-----------------------------------------------------
+; Wait for 128 consecutive short half-periods (2400 Hz leader)
+; Resets counter on any long half-period
+; Ensures signal is stable before attempting to read data
+; Input:  none
+; Output: none
+; Modifies: A, X, Y
+;-----------------------------------------------------
+KCS_WAIT_LEADER:
+    LDY #128
+@loop:
+    JSR KCS_MEASURE_HALF ; C=1: short; C=0: long or timeout
+    BCC @reset           ; long half-period → not pure 2400 Hz, restart count
+    DEY
+    BNE @loop
+    RTS                  ; 128 consecutive short half-periods confirmed
+@reset:
+    LDY #128
+    BRA @loop
+
+;-----------------------------------------------------
+; Read one complete KCS bit
+; Must be called at a bit boundary (just after the preceding
+; bit's last edge — KCS_SKIP_EDGES leaves us there)
+; Classifies the first half-period, then drains the remaining ones
+; Input:  none
+; Output: C = bit value (C=1: 1-bit, C=0: 0-bit)
+; Modifies: A, X
+;-----------------------------------------------------
+KCS_READ_BIT:
+    JSR KCS_MEASURE_HALF ; classify first half-period
+    BCC @zero_bit
+    ; 1-bit (2400 Hz): 16 half-periods total; 1 consumed, skip 15 more
+    LDA #15
+    JSR KCS_SKIP_EDGES
+    SEC                  ; return C=1
+    RTS
+@zero_bit:
+    ; 0-bit (1200 Hz): 8 half-periods total; 1 consumed, skip 7 more
+    LDA #7
+    JSR KCS_SKIP_EDGES
+    CLC                  ; return C=0
+    RTS
+
+;-----------------------------------------------------
+; Read one KCS byte
+; Scans for start bit (first long half-period), collects 8 data
+; bits LSB first using ROR accumulation, returns without explicitly
+; skipping stop bits (the next call's start-bit scan re-syncs through them)
+;
+; ROR accumulation correctness:
+;   Each received bit (in carry) is shifted into bit 7 via ROR.
+;   After 8 RORs of a zero-init byte, bit received first ends at
+;   position 0, last received bit at position 7. ✓
+;
+; Input:  none
+; Output: A = received byte, C=0
+; Modifies: A, X, Y
+;-----------------------------------------------------
+KCS_READ_BYTE:
+    ; Hunt for start bit: loop until a long half-period appears
+@find_start:
+    JSR KCS_MEASURE_HALF  ; C=1: still 1-bit region; C=0: start bit found
+    BCS @find_start
+    ; Found long half-period — this is half-period 1 of the start bit
+    ; Drain remaining 7 half-periods of the start bit
+    LDA #7
+    JSR KCS_SKIP_EDGES
+    ; Collect 8 data bits into byte accumulator kept on the stack
+    ; (stack survives JSR/RTS and is not disturbed by subroutines)
+    LDA #$00
+    PHA                   ; push zero as initial accumulator
+    LDY #8                ; bit counter
+@bit_loop:
+    JSR KCS_READ_BIT      ; C = received bit (clobbers A, X; Y preserved)
+    PLA
+    ROR A                 ; shift carry (received bit) into bit 7
+    PHA
+    DEY
+    BNE @bit_loop
+    PLA                   ; retrieve assembled byte
+    CLC                   ; no error
+    RTS
+
+;-----------------------------------------------------
+; Load a block from tape into memory
+;
+; Block format (matches KCS_SAVE):
+;   [leader]      128+ short half-periods (2400 Hz)
+;   [magic]       $4D $31 ('M','1') — Memo-1 identifier
+;   [start_lo]    destination address, low byte
+;   [start_hi]    destination address, high byte
+;   [len_lo]      byte count, low byte
+;   [len_hi]      byte count, high byte
+;   [data]        <len> bytes
+;   [checksum]    XOR of data bytes only
+;
+; After a successful load:
+;   KCS_START_LO/HI = original_start + len = new VARTAB
+;   KCS_LEN_LO/HI   = 0
+;   KCS_CHECKSUM     = computed XOR (should match tape checksum)
+;
+; Input:  none
+; Output: C=0 success; C=1 error (bad magic or checksum mismatch)
+; Modifies: A, X, Y
+;-----------------------------------------------------
+KCS_LOAD:
+    ; --- Wait for leader ---
+    JSR KCS_WAIT_LEADER
+
+    ; --- Read and verify magic bytes ---
+    JSR KCS_READ_BYTE
+    CMP #KCS_MAGIC_0     ; 'M'
+    BNE @error
+    JSR KCS_READ_BYTE
+    CMP #KCS_MAGIC_1     ; '1'
+    BNE @error
+
+    ; --- Read destination address (little-endian) ---
+    JSR KCS_READ_BYTE
+    STA KCS_START_LO
+    JSR KCS_READ_BYTE
+    STA KCS_START_HI
+
+    ; --- Read byte count (little-endian) ---
+    JSR KCS_READ_BYTE
+    STA KCS_LEN_LO
+    JSR KCS_READ_BYTE
+    STA KCS_LEN_HI
+
+    ; --- Read data bytes, store, and accumulate XOR checksum ---
+    STZ KCS_CHECKSUM
+@data_loop:
+    JSR KCS_READ_BYTE
+    STA (KCS_START_LO)          ; write to current destination
+    EOR KCS_CHECKSUM
+    STA KCS_CHECKSUM
+    ; Advance 16-bit pointer
+    INC KCS_START_LO
+    BNE @no_carry
+    INC KCS_START_HI
+@no_carry:
+    ; Decrement 16-bit counter (borrow: DEC HI before LO wraps $00→$FF)
+    LDA KCS_LEN_LO
+    BNE @no_borrow
+    DEC KCS_LEN_HI
+@no_borrow:
+    DEC KCS_LEN_LO
+    LDA KCS_LEN_LO
+    ORA KCS_LEN_HI
+    BNE @data_loop
+
+    ; --- Read and verify checksum ---
+    JSR KCS_READ_BYTE            ; byte from tape
+    CMP KCS_CHECKSUM             ; compare to computed XOR
+    BNE @error
+
+    CLC                          ; success
+    RTS
+
+@error:
+    SEC                          ; error
     RTS
