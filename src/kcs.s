@@ -11,15 +11,8 @@
 
 .setcpu "65C02"
 
-; Zero page variables
-.zeropage
-.org ZP_KCS_START
-KCS_OUT_STATE:  .res 1  ; Current D0 output level (0 or 1)
-KCS_START_LO:   .res 1  ; Save block start address, low byte
-KCS_START_HI:   .res 1  ; Save block start address, high byte
-KCS_LEN_LO:     .res 1  ; Save block length, low byte
-KCS_LEN_HI:     .res 1  ; Save block length, high byte
-KCS_CHECKSUM:   .res 1  ; XOR checksum accumulator
+; Zero page variables are defined as equates in defines_memo.s
+; (KCS_OUT_STATE, KCS_START_LO/HI, KCS_LEN_LO/HI, KCS_CHECKSUM)
 
 .segment "KCS"
 

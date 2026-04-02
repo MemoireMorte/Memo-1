@@ -12,7 +12,13 @@ ZP_START3A = $6D
 ZP_START4 = $6F
 
 ; KCS zero page block ($F4-$F9, just below STACK_TOP)
-ZP_KCS_START = $F4
+ZP_KCS_START  = $F4
+KCS_OUT_STATE = ZP_KCS_START     ; $F4 - current D0 output level
+KCS_START_LO  = ZP_KCS_START + 1 ; $F5 - save block start address, low byte
+KCS_START_HI  = ZP_KCS_START + 2 ; $F6 - save block start address, high byte
+KCS_LEN_LO    = ZP_KCS_START + 3 ; $F7 - save block length, low byte
+KCS_LEN_HI    = ZP_KCS_START + 4 ; $F8 - save block length, high byte
+KCS_CHECKSUM  = ZP_KCS_START + 5 ; $F9 - XOR checksum accumulator
 
 ; RAM scratch for binary load/run ($0200-$0203, free between stack and input buffer)
 RW_JUMP_LO   = $0200    ; jump target address, lo byte  (written by KCS_LOAD)

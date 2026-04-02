@@ -445,7 +445,9 @@ RW_INPUT_HEX_JUMP:
     JSR     READ_BUFFER
     PLX
     CMP     #CR
-    BEQ     @done                   ; Enter: use whatever is in RW_JUMP
+    BNE     @not_enter
+    RTS                             ; Enter: use whatever is in RW_JUMP
+@not_enter:
     CMP     #$08
     BEQ     @backspace
     CMP     #$7F
@@ -503,6 +505,6 @@ RW_INPUT_HEX_JUMP:
     JSR     ECHO
     LDA     #$08
     JSR     ECHO
-    BRA     @wait
+    JMP     @wait
 @done:
     RTS
