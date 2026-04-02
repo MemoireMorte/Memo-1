@@ -517,6 +517,11 @@ KCS_LOAD:
     STA KCS_START_LO
     JSR KCS_READ_BYTE
     STA KCS_START_HI
+    ; Snapshot original start for the run prompt in read_write.s
+    ; (KCS_START_LO/HI walk forward during the data loop and are not preserved)
+    STA RW_JUMP_HI          ; A still holds the hi byte
+    LDA KCS_START_LO
+    STA RW_JUMP_LO
 
     ; --- Read byte count (little-endian) ---
     JSR KCS_READ_BYTE

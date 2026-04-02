@@ -18,8 +18,10 @@ MENU_WOZMON_MSG:
     .asciiz "1- WOZMON"
 MENU_BASIC_MSG:
     .asciiz "2- MS-BASIC"
+MENU_BINARY_MSG:
+    .asciiz "3- Binary tape"
 MENU_EXTERNAL_ROM_MSG:
-    .asciiz "3- "
+    .asciiz "4- "
 MENU_ABOUT_MSG:
     .asciiz "A- About"
 MENU_RESTART_MSG:
@@ -57,6 +59,11 @@ DISPLAY_MENU:
 
     LDA     #<MENU_BASIC_MSG    ; Load low byte of BASIC message address
     LDY     #>MENU_BASIC_MSG    ; Load high byte of BASIC message address
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+
+    LDA     #<MENU_BINARY_MSG
+    LDY     #>MENU_BINARY_MSG
     JSR     PRINT_STRING
     JSR     PRINT_CR_LF
 ; Check if external ROM is present and print external ROM message if present
@@ -202,7 +209,9 @@ WAIT_FOR_KEY:
     BEQ     GOTO_WOZMON     ; Yes, jump to WOZMON.
     CMP     #'2'            ; '2' for BASIC?
     BEQ     GOTO_BASIC      ; Yes, jump to BASIC.
-    CMP     #'3'            ; '3' for external ROM?
+    CMP     #'3'            ; '3' for binary tape?
+    BEQ     GOTO_BINARY     ; Yes, go to binary save/load submenu.
+    CMP     #'4'            ; '4' for external ROM?
     BEQ     GOTO_EXTERNAL_ROM; Yes, go to external ROM location.
     CMP     #'A'            ; 'A' for ABOUT?
     BEQ     GOTO_ABOUT      ; Yes, go to ABOUT location.
@@ -233,6 +242,10 @@ GOTO_BASIC:
     JSR     CURSOR_ON      ; Turn ON cursor
     JSR     CLEAR_BUFFER
     JMP     COLD_START
+GOTO_BINARY:
+    JSR     SMALL_BEEP
+    JSR     CLEAR_BUFFER
+    JMP     RW_SUBMENU
 GOTO_ABOUT:
     JSR     SMALL_BEEP
     JSR     CURSOR_HOME

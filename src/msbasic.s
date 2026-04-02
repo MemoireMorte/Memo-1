@@ -34,3 +34,4 @@
 .include "init.s"
 .include "extra.s"
 .include "sound.s"
+.include "read_write.s"
