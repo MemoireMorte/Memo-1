@@ -496,14 +496,18 @@ KCS_READ_BYTE:
 KCS_LOAD:
     ; --- Wait for leader ---
     JSR KCS_WAIT_LEADER
+    LDA #'L'                     ; DEBUG: leader locked
+    JSR CHROUT
 
     ; --- Read and verify magic bytes ---
     JSR KCS_READ_BYTE
     CMP #KCS_MAGIC_0     ; 'M'
     BNE @error
+    JSR CHROUT                   ; DEBUG: prints 'M' (A still = $4D)
     JSR KCS_READ_BYTE
     CMP #KCS_MAGIC_1     ; '1'
     BNE @error
+    JSR CHROUT                   ; DEBUG: prints '1' (A still = $31)
 
     ; --- Read destination address (little-endian) ---
     JSR KCS_READ_BYTE
@@ -521,6 +525,8 @@ KCS_LOAD:
     STA KCS_LEN_LO
     JSR KCS_READ_BYTE
     STA KCS_LEN_HI
+    LDA #'H'                     ; DEBUG: header complete
+    JSR CHROUT
 
     ; --- Read data bytes, store, and accumulate XOR checksum ---
     STZ KCS_CHECKSUM
