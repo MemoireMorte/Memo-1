@@ -496,8 +496,8 @@ KCS_READ_BYTE:
 KCS_LOAD:
     ; --- Wait for leader ---
     JSR KCS_WAIT_LEADER
-    LDA #'L'                     ; DEBUG: leader locked
-    JSR CHROUT
+    ;LDA #'L'                     ; DEBUG: leader locked
+    ;JSR CHROUT
 
     ; --- Read and verify magic bytes ---
     JSR KCS_READ_BYTE
