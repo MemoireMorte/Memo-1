@@ -371,6 +371,17 @@ KCS_MEASURE_HALF:
     CMP KCS_OUT_STATE    ; 3
     BEQ @loop            ; 3/2 - still same level
     ; Level changed: classify by iteration count
+    ; DEBUG: log raw X count to RAM before classifying
+    PHA
+    LDA KCS_LOG_IDX
+    CMP #$7F             ; cap at 127 entries
+    BCS @skip_raw_log
+    TAY
+    TXA
+    STA KCS_LOG_BUF, Y
+    INC KCS_LOG_IDX
+@skip_raw_log:
+    PLA
     CPX #KCS_HALF_THRESHOLD   ; C set if X >= threshold (long = 0-bit)
     BCS @long
     SEC                  ; X < threshold: short = 1-bit
@@ -422,22 +433,12 @@ KCS_READ_BIT:
     ; 1-bit (2400 Hz): 16 half-periods total; 1 consumed, skip 15 more
     LDA #15
     JSR KCS_SKIP_EDGES
-    ; DEBUG: log '1' — all half-periods consumed, safe to write RAM
-    LDX KCS_LOG_IDX
-    LDA #'1'
-    STA KCS_LOG_BUF, X
-    INC KCS_LOG_IDX
     SEC                  ; return C=1
     RTS
 @zero_bit:
     ; 0-bit (1200 Hz): 8 half-periods total; 1 consumed, skip 7 more
     LDA #7
     JSR KCS_SKIP_EDGES
-    ; DEBUG: log '0'
-    LDX KCS_LOG_IDX
-    LDA #'0'
-    STA KCS_LOG_BUF, X
-    INC KCS_LOG_IDX
     CLC                  ; return C=0
     RTS
 
@@ -462,11 +463,6 @@ KCS_READ_BYTE:
     JSR KCS_MEASURE_HALF  ; C=1: still 1-bit region; C=0: start bit found
     BCS @find_start
     ; Found long half-period — this is half-period 1 of the start bit
-    ; DEBUG: log 'S' for start bit boundary
-    LDX KCS_LOG_IDX
-    LDA #'S'
-    STA KCS_LOG_BUF, X
-    INC KCS_LOG_IDX
     ; Drain remaining 7 half-periods of the start bit
     LDA #7
     JSR KCS_SKIP_EDGES
@@ -586,13 +582,34 @@ KCS_DUMP_LOG:
 @loop:
     CPX KCS_LOG_IDX
     BEQ @done
-    LDA KCS_LOG_BUF, X
+    LDA KCS_LOG_BUF, X   ; raw X count byte
+    JSR @print_hex       ; print as 2 hex digits
+    LDA #' '
     JSR CHROUT
     INX
     BRA @loop
 @done:
-    LDA #$0D             ; CR
+    LDA #$0D
     JSR CHROUT
-    LDA #$0A             ; LF
+    LDA #$0A
     JSR CHROUT
     RTS
+
+; Print A as two uppercase hex digits, clobbers A
+@print_hex:
+    PHA
+    LSR A
+    LSR A
+    LSR A
+    LSR A                ; high nibble
+    JSR @nibble
+    PLA
+    AND #$0F             ; low nibble
+    ; fall through
+@nibble:
+    CMP #10
+    BCC @digit
+    ADC #('A'-'0'-1)     ; adjust for A-F (carry is set so +6 effectively)
+@digit:
+    ADC #'0'
+    JMP CHROUT
