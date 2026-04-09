@@ -422,12 +422,22 @@ KCS_READ_BIT:
     ; 1-bit (2400 Hz): 16 half-periods total; 1 consumed, skip 15 more
     LDA #15
     JSR KCS_SKIP_EDGES
+    ; DEBUG: log '1' — all half-periods consumed, safe to write RAM
+    LDX KCS_LOG_IDX
+    LDA #'1'
+    STA KCS_LOG_BUF, X
+    INC KCS_LOG_IDX
     SEC                  ; return C=1
     RTS
 @zero_bit:
     ; 0-bit (1200 Hz): 8 half-periods total; 1 consumed, skip 7 more
     LDA #7
     JSR KCS_SKIP_EDGES
+    ; DEBUG: log '0'
+    LDX KCS_LOG_IDX
+    LDA #'0'
+    STA KCS_LOG_BUF, X
+    INC KCS_LOG_IDX
     CLC                  ; return C=0
     RTS
 
@@ -452,6 +462,11 @@ KCS_READ_BYTE:
     JSR KCS_MEASURE_HALF  ; C=1: still 1-bit region; C=0: start bit found
     BCS @find_start
     ; Found long half-period — this is half-period 1 of the start bit
+    ; DEBUG: log 'S' for start bit boundary
+    LDX KCS_LOG_IDX
+    LDA #'S'
+    STA KCS_LOG_BUF, X
+    INC KCS_LOG_IDX
     ; Drain remaining 7 half-periods of the start bit
     LDA #7
     JSR KCS_SKIP_EDGES
@@ -494,20 +509,21 @@ KCS_READ_BYTE:
 ; Modifies: A, X, Y
 ;-----------------------------------------------------
 KCS_LOAD:
+    ; --- Init bit log ---
+    STZ KCS_LOG_IDX               ; DEBUG: reset log index
+
     ; --- Wait for leader ---
     JSR KCS_WAIT_LEADER
-    ;LDA #'L'                     ; DEBUG: leader locked
-    ;JSR CHROUT
+    LDA #'L'                      ; DEBUG: leader locked (CHROUT here is safe — before any data)
+    JSR CHROUT
 
     ; --- Read and verify magic bytes ---
     JSR KCS_READ_BYTE
     CMP #KCS_MAGIC_0     ; 'M'
     BNE @error
-    JSR CHROUT                   ; DEBUG: prints 'M' (A still = $4D)
     JSR KCS_READ_BYTE
     CMP #KCS_MAGIC_1     ; '1'
     BNE @error
-    JSR CHROUT                   ; DEBUG: prints '1' (A still = $31)
 
     ; --- Read destination address (little-endian) ---
     JSR KCS_READ_BYTE
@@ -525,8 +541,6 @@ KCS_LOAD:
     STA KCS_LEN_LO
     JSR KCS_READ_BYTE
     STA KCS_LEN_HI
-    LDA #'H'                     ; DEBUG: header complete
-    JSR CHROUT
 
     ; --- Read data bytes, store, and accumulate XOR checksum ---
     STZ KCS_CHECKSUM
@@ -559,5 +573,31 @@ KCS_LOAD:
     RTS
 
 @error:
+    ; DEBUG: dump bit log over serial then signal error
+    JSR KCS_DUMP_LOG
     SEC                          ; error
+    RTS
+
+;-----------------------------------------------------
+; Dump the bit log to serial (debug only)
+; Prints all bytes recorded in KCS_LOG_BUF[0..KCS_LOG_IDX-1]
+; Adds a CR+LF at the end for readability
+; Input:  none
+; Output: none
+; Modifies: A, X
+;-----------------------------------------------------
+KCS_DUMP_LOG:
+    LDX #0
+@loop:
+    CPX KCS_LOG_IDX
+    BEQ @done
+    LDA KCS_LOG_BUF, X
+    JSR CHROUT
+    INX
+    BRA @loop
+@done:
+    LDA #$0D             ; CR
+    JSR CHROUT
+    LDA #$0A             ; LF
+    JSR CHROUT
     RTS
