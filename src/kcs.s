@@ -609,7 +609,7 @@ KCS_DUMP_LOG:
 @nibble:
     CMP #10
     BCC @digit
-    ADC #('A'-'0'-1)     ; adjust for A-F (carry is set so +6 effectively)
+    ADC #6               ; carry=1 from CMP, so effective +7: '0'+10+7='A' ✓
 @digit:
     ADC #'0'
     JMP CHROUT
