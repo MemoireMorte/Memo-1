@@ -370,18 +370,8 @@ KCS_MEASURE_HALF:
     AND #$01             ; 2
     CMP KCS_OUT_STATE    ; 3
     BEQ @loop            ; 3/2 - still same level
-    ; Level changed: classify by iteration count
-    ; DEBUG: log raw X count to RAM before classifying
-    PHA
-    LDA KCS_LOG_IDX
-    CMP #$7F             ; cap at 127 entries
-    BCS @skip_raw_log
-    TAY
-    TXA
-    STA KCS_LOG_BUF, Y
-    INC KCS_LOG_IDX
-@skip_raw_log:
-    PLA
+    ; Level changed: save raw count and classify
+    STX KCS_LAST_X            ; DEBUG: save raw iteration count for caller to log
     CPX #KCS_HALF_THRESHOLD   ; C set if X >= threshold (long = 0-bit)
     BCS @long
     SEC                  ; X < threshold: short = 1-bit
@@ -428,7 +418,12 @@ KCS_WAIT_LEADER:
 ; Modifies: A, X
 ;-----------------------------------------------------
 KCS_READ_BIT:
-    JSR KCS_MEASURE_HALF ; classify first half-period
+    JSR KCS_MEASURE_HALF ; classify first half-period; saves raw count in KCS_LAST_X
+    ; DEBUG: log raw X count for this bit's first half-period
+    LDX KCS_LOG_IDX
+    LDA KCS_LAST_X
+    STA KCS_LOG_BUF, X
+    INC KCS_LOG_IDX
     BCC @zero_bit
     ; 1-bit (2400 Hz): 16 half-periods total; 1 consumed, skip 15 more
     LDA #15
