@@ -511,25 +511,20 @@ KCS_READ_BYTE:
 KCS_LOAD:
     ; --- Init bit log ---
     STZ KCS_LOG_IDX               ; DEBUG: reset log index
+    LDA #'W'                      ; DEBUG: waiting for leader
+    JSR CHROUT
 
     ; --- Wait for leader ---
     JSR KCS_WAIT_LEADER
-    LDA #'L'                      ; DEBUG: leader locked (CHROUT here is safe — before any data)
-    JSR CHROUT
 
-    ; --- Read and verify magic bytes ---
-    JSR KCS_READ_BYTE
-    CMP #KCS_MAGIC_0     ; 'M'
-    BNE @error
-    JSR KCS_READ_BYTE
-    CMP #KCS_MAGIC_1     ; '1'
-    BNE @error
-
-    ; --- Read destination address (little-endian) ---
-    JSR KCS_READ_BYTE
-    STA KCS_START_LO
-    JSR KCS_READ_BYTE
-    STA KCS_START_HI
+    ; --- DEBUG: read 4 bytes unconditionally and dump log ---
+    JSR KCS_READ_BYTE    ; byte 0 (expected KCS_MAGIC_0 'M')
+    JSR KCS_READ_BYTE    ; byte 1 (expected KCS_MAGIC_1 '1')
+    JSR KCS_READ_BYTE    ; byte 2 (expected start addr lo)
+    JSR KCS_READ_BYTE    ; byte 3 (expected start addr hi)
+    JSR KCS_DUMP_LOG
+    SEC                  ; always error for now
+    RTS
     ; Snapshot original start for the run prompt in read_write.s
     ; (KCS_START_LO/HI walk forward during the data loop and are not preserved)
     STA RW_JUMP_HI          ; A still holds the hi byte
