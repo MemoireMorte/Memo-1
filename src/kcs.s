@@ -370,7 +370,14 @@ KCS_MEASURE_HALF:
     AND #$01             ; 2
     CMP KCS_OUT_STATE    ; 3
     BEQ @loop            ; 3/2 - still same level
-    ; Level changed: save raw count and classify
+    ; Level changed: reject noise glitches shorter than 5 iterations (~75 µs)
+    ; Real 2400 Hz half-periods measure ~12 iterations, so 5 is a safe floor.
+    CPX #5
+    BCS @real_edge
+    ; Glitch: adopt the new level as reference and keep counting
+    STA KCS_OUT_STATE     ; A = new level (from AND #$01 above)
+    BRA @loop
+@real_edge:
     STX KCS_LAST_X            ; DEBUG: save raw iteration count for caller to log
     CPX #KCS_HALF_THRESHOLD   ; C set if X >= threshold (long = 0-bit)
     BCS @long

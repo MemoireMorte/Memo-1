@@ -180,6 +180,7 @@ By Benoit Aveline, aka Memoire Morte
 Special thanks to:
  - [Ben Eater](https://eater.net/6502) for his 6502 computer design and tutorials - *CC-BY License*
  - [Ian Ward](https://www.youtube.com/@IanWard1) for his YouTube videos on 2004 lcd and 555 timer - *No license found*
+ 
 Current source code is based on:
  - Wozmon by Steve Wozniak - *(c) 1976 Apple (before code IP even exist)*
  - [BASIC-M6502](https://github.com/microsoft/BASIC-M6502) by Weiland & Gates - *(c) Microsoft - MIT License*
