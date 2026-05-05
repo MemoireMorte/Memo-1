@@ -325,14 +325,24 @@ KCS_HALF_THRESHOLD = 19
 ; Modifies: A
 ;-----------------------------------------------------
 KCS_SKIP_ONE_EDGE:
-    LDA KCS_PORT_IN      ; sample current level
-    AND #$01
-    STA KCS_OUT_STATE    ; save for comparison
+    LDA KCS_PORT_IN      ; 4 - sample current level
+    AND #$01             ; 2
+    STA KCS_OUT_STATE    ; 3 - save reference level
 @wait:
-    LDA KCS_PORT_IN
-    AND #$01
-    CMP KCS_OUT_STATE
-    BEQ @wait            ; still same level
+    LDA KCS_PORT_IN      ; 4
+    AND #$01             ; 2
+    CMP KCS_OUT_STATE    ; 3
+    BEQ @wait            ; 3/2 - still same level, keep polling
+    ; Level changed — confirm with two more samples to reject glitches
+    LDA KCS_PORT_IN      ; 4 - sample 2
+    AND #$01             ; 2
+    CMP KCS_OUT_STATE    ; 3 - still different from original?
+    BEQ @wait            ; 3 - bounced back: false glitch, keep waiting
+    LDA KCS_PORT_IN      ; 4 - sample 3
+    AND #$01             ; 2
+    CMP KCS_OUT_STATE    ; 3 - still different?
+    BEQ @wait            ; 3 - bounced back: false glitch, keep waiting
+    ; Three consecutive samples on the new side — real transition confirmed
     RTS
 
 ;-----------------------------------------------------
@@ -378,7 +388,9 @@ KCS_MEASURE_HALF:
     STA KCS_OUT_STATE     ; A = new level (from AND #$01 above)
     BRA @loop
 @real_edge:
+.ifdef KCS_DEBUG
     STX KCS_LAST_X            ; DEBUG: save raw iteration count for caller to log
+.endif
     CPX #KCS_HALF_THRESHOLD   ; C set if X >= threshold (long = 0-bit)
     BCS @long
     SEC                  ; X < threshold: short = 1-bit
@@ -426,11 +438,13 @@ KCS_WAIT_LEADER:
 ;-----------------------------------------------------
 KCS_READ_BIT:
     JSR KCS_MEASURE_HALF ; classify first half-period; saves raw count in KCS_LAST_X
+.ifdef KCS_DEBUG
     ; DEBUG: log raw X count for this bit's first half-period
     LDX KCS_LOG_IDX
     LDA KCS_LAST_X
     STA KCS_LOG_BUF, X
     INC KCS_LOG_IDX
+.endif
     BCC @zero_bit
     ; 1-bit (2400 Hz): 16 half-periods total; 1 consumed, skip 15 more
     LDA #15
@@ -460,13 +474,17 @@ KCS_READ_BIT:
 ; Modifies: A, X, Y
 ;-----------------------------------------------------
 KCS_READ_BYTE:
-    ; Hunt for start bit: loop until a long half-period appears
+    ; Hunt for start bit: require two consecutive long half-periods
+    ; A single jittered period at threshold cannot trigger a false start
 @find_start:
-    JSR KCS_MEASURE_HALF  ; C=1: still 1-bit region; C=0: start bit found
-    BCS @find_start
-    ; Found long half-period — this is half-period 1 of the start bit
-    ; Drain remaining 7 half-periods of the start bit
-    LDA #7
+    JSR KCS_MEASURE_HALF  ; C=1: short (2400 Hz); C=0: candidate long half-period
+    BCS @find_start       ; still in leader, keep scanning
+    ; First long half-period seen — confirm with a second
+    JSR KCS_MEASURE_HALF  ; C=0: second half-period also long → genuine start bit
+    BCS @find_start       ; was short — false trigger, restart scan
+    ; Two consecutive long half-periods confirmed: half-periods 1 and 2 consumed
+    ; Drain remaining 6 half-periods of the start bit
+    LDA #6
     JSR KCS_SKIP_EDGES
     ; Collect 8 data bits into byte accumulator kept on the stack
     ; (stack survives JSR/RTS and is not disturbed by subroutines)
@@ -515,17 +533,22 @@ KCS_LOAD:
     ; --- Wait for leader ---
     JSR KCS_WAIT_LEADER
 
-    ; --- DEBUG: read 4 bytes unconditionally and dump log ---
-    JSR KCS_READ_BYTE    ; byte 0 (expected KCS_MAGIC_0 'M')
-    JSR KCS_READ_BYTE    ; byte 1 (expected KCS_MAGIC_1 '1')
-    JSR KCS_READ_BYTE    ; byte 2 (expected start addr lo)
-    JSR KCS_READ_BYTE    ; byte 3 (expected start addr hi)
-    JSR KCS_DUMP_LOG
-    SEC                  ; always error for now
-    RTS
+    ; --- Read and verify magic bytes ---
+    JSR KCS_READ_BYTE
+    CMP #KCS_MAGIC_0              ; 'M'
+    BNE @error
+    JSR KCS_READ_BYTE
+    CMP #KCS_MAGIC_1              ; '1'
+    BNE @error
+
+    ; --- Read destination address (little-endian) ---
+    JSR KCS_READ_BYTE
+    STA KCS_START_LO
+    JSR KCS_READ_BYTE
+    STA KCS_START_HI
     ; Snapshot original start for the run prompt in read_write.s
     ; (KCS_START_LO/HI walk forward during the data loop and are not preserved)
-    STA RW_JUMP_HI          ; A still holds the hi byte
+    STA RW_JUMP_HI                ; A still holds the hi byte
     LDA KCS_START_LO
     STA RW_JUMP_LO
 
