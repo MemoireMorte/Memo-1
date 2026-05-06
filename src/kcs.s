@@ -533,6 +533,16 @@ KCS_LOAD:
     ; --- Wait for leader ---
     JSR KCS_WAIT_LEADER
 
+.ifdef KCS_DEBUG
+    ; DEBUG: read 4 raw bytes (log 32 X values), dump, abort
+    ; This bypasses magic-byte check so we can see what's actually on tape
+    JSR KCS_READ_BYTE
+    JSR KCS_READ_BYTE
+    JSR KCS_READ_BYTE
+    JSR KCS_READ_BYTE
+    BRA @error
+.endif
+
     ; --- Read and verify magic bytes ---
     JSR KCS_READ_BYTE
     CMP #KCS_MAGIC_0              ; 'M'
