@@ -625,10 +625,25 @@ KCS_LOAD:
     BNE @data_loop
 
     ; --- Read and verify checksum ---
-    JSR KCS_READ_BYTE            ; byte from tape
+    JSR KCS_READ_BYTE            ; A = checksum byte from tape
     CMP KCS_CHECKSUM             ; compare to computed XOR
-    BNE @error
-
+    BEQ @cksum_ok
+    ; Mismatch: print "Xrr cc" (rr=received, cc=computed) then error
+    PHA                          ; save received byte
+    LDA #'X'
+    JSR CHROUT
+    PLA                          ; A = received byte from tape
+    JSR KCS_PRINT_HEX
+    LDA #' '
+    JSR CHROUT
+    LDA KCS_CHECKSUM             ; A = locally computed XOR
+    JSR KCS_PRINT_HEX
+    LDA #$0D
+    JSR CHROUT
+    LDA #$0A
+    JSR CHROUT
+    BRA @error
+@cksum_ok:
     CLC                          ; success
     RTS
 
