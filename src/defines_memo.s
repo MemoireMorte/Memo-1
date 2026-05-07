@@ -20,7 +20,7 @@ KCS_LEN_LO    = ZP_KCS_START + 3 ; $F7 - save block length, low byte
 KCS_LEN_HI    = ZP_KCS_START + 4 ; $F8 - save block length, high byte
 KCS_CHECKSUM  = ZP_KCS_START + 5 ; $F9 - XOR checksum accumulator
 KCS_LOG_IDX   = $FB               ; debug bit log write index (above STACK_TOP, safe during load)
-KCS_LAST_X    = $FC               ; debug: raw X count from last KCS_MEASURE_HALF call
+KCS_LAST_X    = $FC               ; KCS_READ_BIT loop countdown; debug: transition count per bit
 
 ; KCS bit log: 128 bytes in RAM between RW block and input buffer
 KCS_LOG_BUF   = $0204             ; $0204-$027F: '0'/'1' per received bit + 'S' per start bit

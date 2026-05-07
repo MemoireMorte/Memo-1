@@ -408,89 +408,109 @@ KCS_MEASURE_HALF:
     RTS
 
 ;-----------------------------------------------------
-; Wait for 128 consecutive short half-periods (2400 Hz leader)
+; Wait for 200 consecutive short half-periods (2400 Hz leader)
 ; Resets counter on any long half-period
 ; Ensures signal is stable before attempting to read data
+; 200 × 208 µs ≈ 42 ms of clean 2400 Hz required
 ; Input:  none
 ; Output: none
 ; Modifies: A, X, Y
 ;-----------------------------------------------------
 KCS_WAIT_LEADER:
-    LDY #128
+    LDY #200
 @loop:
     JSR KCS_MEASURE_HALF ; C=1: short; C=0: long or timeout
     BCC @reset           ; long half-period → not pure 2400 Hz, restart count
     DEY
     BNE @loop
-    RTS                  ; 128 consecutive short half-periods confirmed
+    RTS                  ; 200 consecutive short half-periods confirmed
 @reset:
-    LDY #128
+    LDY #200
     BRA @loop
 
 ;-----------------------------------------------------
-; Read one complete KCS bit
-; Must be called at a bit boundary (just after the preceding
-; bit's last edge — KCS_SKIP_EDGES leaves us there)
-; Classifies the first half-period, then drains the remaining ones
+; Read one complete KCS bit — transition counting (Acorn Atom method)
+; Counts all signal transitions during exactly one bit period (~3333 cycles at 1 MHz).
+; 0-bit (1200 Hz): ~8 transitions   1-bit (2400 Hz): ~16 transitions
+; Threshold 12 is the exact midpoint → ±4 transition noise tolerance.
+;
+; Must be called at a data bit boundary (immediately after start bit
+; or previous data bit). Does NOT call KCS_SKIP_EDGES.
+;
+; KCS_LAST_X is repurposed here as the loop countdown register:
+;   production: holds countdown value (165 → 0)
+;   debug:      holds countdown, then overwritten with transition count for logging
+;
+; Loop timing: 20 cycles/iter (no transition) × 165 = 3300 cycles.
+; Plus ~33 cycles of setup/exit overhead ≈ 3333 cycles total. Tune #165 if needed.
+;
 ; Input:  none
-; Output: C = bit value (C=1: 1-bit, C=0: 0-bit)
-; Modifies: A, X
+; Output: C=1 → 1-bit; C=0 → 0-bit  (C set directly by CPX #12)
+; Modifies: A, X  (Y preserved)
 ;-----------------------------------------------------
 KCS_READ_BIT:
-    JSR KCS_MEASURE_HALF ; classify first half-period; saves raw count in KCS_LAST_X
+    LDA KCS_PORT_IN       ; 4  snapshot current signal level
+    AND #$01              ; 2
+    STA KCS_OUT_STATE     ; 3  reference level for transition detection
+    LDX #0                ; 2  clear transition counter
+    LDA #165              ; 2  countdown: 165 × ~20 cycles ≈ 3300 cycles
+    STA KCS_LAST_X        ; 3  store countdown (KCS_LAST_X repurposed)
+@count_loop:
+    LDA KCS_PORT_IN       ; 4  sample input
+    AND #$01              ; 2
+    CMP KCS_OUT_STATE     ; 3  transition?
+    BEQ @no_change        ; 3/2
+    STA KCS_OUT_STATE     ; 3  update reference to new level
+    INX                   ; 2  count this transition
+@no_change:
+    DEC KCS_LAST_X        ; 5  decrement countdown
+    BNE @count_loop       ; 3/2
+    ; X = total transitions in one bit period
+    ; ~8 → 0-bit (C=0 after CPX); ~16 → 1-bit (C=1 after CPX)
 .ifdef KCS_DEBUG
-    ; DEBUG: log raw X count for this bit's first half-period
+    STX KCS_LAST_X        ; save count before clobbering X
     LDX KCS_LOG_IDX
-    LDA KCS_LAST_X
+    LDA KCS_LAST_X        ; A = transition count
     STA KCS_LOG_BUF, X
     INC KCS_LOG_IDX
+    LDX KCS_LAST_X        ; restore X = count for CPX
 .endif
-    BCC @zero_bit
-    ; 1-bit (2400 Hz): 16 half-periods total; 1 consumed, skip 15 more
-    LDA #15
-    JSR KCS_SKIP_EDGES
-    SEC                  ; return C=1
-    RTS
-@zero_bit:
-    ; 0-bit (1200 Hz): 8 half-periods total; 1 consumed, skip 7 more
-    LDA #7
-    JSR KCS_SKIP_EDGES
-    CLC                  ; return C=0
-    RTS
+    CPX #12               ; C=1 if X >= 12 → 1-bit; C=0 if X < 12 → 0-bit
+    RTS                   ; return with C set by CPX (no SEC/CLC needed)
 
 ;-----------------------------------------------------
 ; Read one KCS byte
-; Scans for start bit (first long half-period), collects 8 data
-; bits LSB first using ROR accumulation, returns without explicitly
-; skipping stop bits (the next call's start-bit scan re-syncs through them)
+; Scans for start bit (8 consecutive long half-periods), collects 8 data
+; bits LSB first using ROR accumulation.
 ;
-; ROR accumulation correctness:
-;   Each received bit (in carry) is shifted into bit 7 via ROR.
-;   After 8 RORs of a zero-init byte, bit received first ends at
-;   position 0, last received bit at position 7. ✓
+; Start bit detection (Acorn Atom method):
+;   Accumulate 8 consecutive long half-periods using Y as a counter
+;   (Y init=$78; 8 INY ops reach $80, setting bit 7 → BPL fails → exit).
+;   Reset on ANY short half-period → requires 3.33 ms of sustained 1200 Hz
+;   to confirm. Consumes the full start bit with no separate drain step.
+;
+; ROR accumulation: each received bit (in carry) shifted into bit 7.
+;   After 8 RORs of $00, first-received bit is at position 0. ✓
 ;
 ; Input:  none
-; Output: A = received byte, C=0
+; Output: A = received byte
 ; Modifies: A, X, Y
 ;-----------------------------------------------------
 KCS_READ_BYTE:
-    ; Hunt for start bit: require two consecutive long half-periods
-    ; A single jittered period at threshold cannot trigger a false start
+    ; Hunt for start bit: require 8 consecutive long half-periods
+    ; Y is used as the accumulator counter ($78 → $80 = 8 counts)
 @find_start:
-    JSR KCS_MEASURE_HALF  ; C=1: short (2400 Hz); C=0: candidate long half-period
-    BCS @find_start       ; still in leader, keep scanning
-    ; First long half-period seen — confirm with a second
-    JSR KCS_MEASURE_HALF  ; C=0: second half-period also long → genuine start bit
-    BCS @find_start       ; was short — false trigger, restart scan
-    ; Two consecutive long half-periods confirmed: half-periods 1 and 2 consumed
-    ; Drain remaining 6 half-periods of the start bit
-    LDA #6
-    JSR KCS_SKIP_EDGES
-    ; Collect 8 data bits into byte accumulator kept on the stack
-    ; (stack survives JSR/RTS and is not disturbed by subroutines)
+    LDY #$78              ; counter init: 8 INY ops from $78 reach $80
+@count_start:
+    JSR KCS_MEASURE_HALF  ; C=0: long (1200 Hz); C=1: short (2400 Hz) — Y preserved
+    BCS @find_start       ; short half-period → reset counter, start over
+    INY                   ; count this long half-period
+    BPL @count_start      ; while Y < $80 (bit 7 clear), keep counting
+    ; Y = $80: 8 consecutive long half-periods confirmed
+    ; Full start bit consumed — now at data bit 0 boundary
     LDA #$00
-    PHA                   ; push zero as initial accumulator
-    LDY #8                ; bit counter
+    PHA                   ; push zero as initial byte accumulator
+    LDY #8                ; bit counter (re-uses Y after start bit detection)
 @bit_loop:
     JSR KCS_READ_BIT      ; C = received bit (clobbers A, X; Y preserved)
     PLA
