@@ -562,7 +562,7 @@ KCS_LOAD:
     PLA
 .endif
     CMP #KCS_MAGIC_0              ; 'M'
-    BNE @error
+    BNE @bad_magic
     JSR KCS_READ_BYTE
 .ifdef KCS_DEBUG
     PHA
@@ -572,7 +572,11 @@ KCS_LOAD:
     PLA
 .endif
     CMP #KCS_MAGIC_1              ; '1'
-    BNE @error
+    BNE @bad_magic
+    BRA @magic_ok
+@bad_magic:
+    JMP @error
+@magic_ok:
 
     ; --- Read destination address (little-endian) ---
     JSR KCS_READ_BYTE
