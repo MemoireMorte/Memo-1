@@ -497,20 +497,19 @@ KCS_READ_BIT:
 ; Modifies: A, X, Y
 ;-----------------------------------------------------
 KCS_READ_BYTE:
-    ; Hunt for start bit: require 8 consecutive long half-periods
-    ; Y is used as the accumulator counter ($78 → $80 = 8 counts)
+    ; Hunt for start bit: find 2 consecutive long half-periods, drain 6 more.
+    ; Total: 8 half-periods consumed = one full start bit (1200 Hz).
 @find_start:
-    LDY #$78              ; counter init: 8 INY ops from $78 reach $80
-@count_start:
-    JSR KCS_MEASURE_HALF  ; C=0: long (1200 Hz); C=1: short (2400 Hz) — Y preserved
-    BCS @find_start       ; short half-period → reset counter, start over
-    INY                   ; count this long half-period
-    BPL @count_start      ; while Y < $80 (bit 7 clear), keep counting
-    ; Y = $80: 8 consecutive long half-periods confirmed
-    ; Full start bit consumed — now at data bit 0 boundary
+    JSR KCS_MEASURE_HALF  ; C=0: long (1200 Hz); C=1: short (2400 Hz)
+    BCS @find_start       ; short → not a start bit, keep looking
+    JSR KCS_MEASURE_HALF  ; confirm: second consecutive long
+    BCS @find_start       ; short → first was a fluke, restart
+    LDA #6
+    JSR KCS_SKIP_EDGES    ; drain remaining 6 half-periods of the start bit
+    ; 2 measured + 6 drained = 8 half-periods consumed = now at data bit 0 boundary
     LDA #$00
     PHA                   ; push zero as initial byte accumulator
-    LDY #8                ; bit counter (re-uses Y after start bit detection)
+    LDY #8                ; bit counter
 @bit_loop:
     JSR KCS_READ_BIT      ; C = received bit (clobbers A, X; Y preserved)
     PLA
@@ -554,13 +553,28 @@ KCS_LOAD:
     JSR KCS_WAIT_LEADER
 
 .ifdef KCS_DEBUG
-    ; DEBUG: read 4 raw bytes (log 32 X values), dump, abort
-    ; This bypasses magic-byte check so we can see what's actually on tape
-    JSR KCS_READ_BYTE
-    JSR KCS_READ_BYTE
-    JSR KCS_READ_BYTE
-    JSR KCS_READ_BYTE
-    BRA @error
+    ; DEBUG: read 4 bytes, print decoded hex values, dump transition log, abort
+    ; Line 1: decoded bytes (e.g. "4D 31 BF 78")
+    ; Line 2: raw transition counts from KCS_READ_BIT
+    JSR KCS_READ_BYTE   ; byte 1
+    JSR KCS_PRINT_HEX   ; print decoded hex
+    LDA #' '
+    JSR CHROUT
+    JSR KCS_READ_BYTE   ; byte 2
+    JSR KCS_PRINT_HEX
+    LDA #' '
+    JSR CHROUT
+    JSR KCS_READ_BYTE   ; byte 3
+    JSR KCS_PRINT_HEX
+    LDA #' '
+    JSR CHROUT
+    JSR KCS_READ_BYTE   ; byte 4
+    JSR KCS_PRINT_HEX
+    LDA #$0D
+    JSR CHROUT
+    LDA #$0A
+    JSR CHROUT
+    BRA @error          ; falls through to KCS_DUMP_LOG for transition counts
 .endif
 
     ; --- Read and verify magic bytes ---
@@ -638,7 +652,7 @@ KCS_DUMP_LOG:
     CPX KCS_LOG_IDX
     BEQ @done
     LDA KCS_LOG_BUF, X   ; raw X count byte
-    JSR @print_hex       ; print as 2 hex digits
+    JSR KCS_PRINT_HEX    ; print as 2 hex digits
     LDA #' '
     JSR CHROUT
     INX
@@ -651,7 +665,7 @@ KCS_DUMP_LOG:
     RTS
 
 ; Print A as two uppercase hex digits, clobbers A
-@print_hex:
+KCS_PRINT_HEX:
     PHA
     LSR A
     LSR A
