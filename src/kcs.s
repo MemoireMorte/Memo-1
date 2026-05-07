@@ -552,43 +552,46 @@ KCS_LOAD:
     ; --- Wait for leader ---
     JSR KCS_WAIT_LEADER
 
-.ifdef KCS_DEBUG
-    ; DEBUG: read 4 bytes, print decoded hex values, dump transition log, abort
-    ; Line 1: decoded bytes (e.g. "4D 31 BF 78")
-    ; Line 2: raw transition counts from KCS_READ_BIT
-    JSR KCS_READ_BYTE   ; byte 1
-    JSR KCS_PRINT_HEX   ; print decoded hex
-    LDA #' '
-    JSR CHROUT
-    JSR KCS_READ_BYTE   ; byte 2
-    JSR KCS_PRINT_HEX
-    LDA #' '
-    JSR CHROUT
-    JSR KCS_READ_BYTE   ; byte 3
-    JSR KCS_PRINT_HEX
-    LDA #' '
-    JSR CHROUT
-    JSR KCS_READ_BYTE   ; byte 4
-    JSR KCS_PRINT_HEX
-    LDA #$0D
-    JSR CHROUT
-    LDA #$0A
-    JSR CHROUT
-    BRA @error          ; falls through to KCS_DUMP_LOG for transition counts
-.endif
-
     ; --- Read and verify magic bytes ---
     JSR KCS_READ_BYTE
+.ifdef KCS_DEBUG
+    PHA
+    JSR KCS_PRINT_HEX
+    LDA #' '
+    JSR CHROUT
+    PLA
+.endif
     CMP #KCS_MAGIC_0              ; 'M'
     BNE @error
     JSR KCS_READ_BYTE
+.ifdef KCS_DEBUG
+    PHA
+    JSR KCS_PRINT_HEX
+    LDA #' '
+    JSR CHROUT
+    PLA
+.endif
     CMP #KCS_MAGIC_1              ; '1'
     BNE @error
 
     ; --- Read destination address (little-endian) ---
     JSR KCS_READ_BYTE
+.ifdef KCS_DEBUG
+    PHA
+    JSR KCS_PRINT_HEX
+    LDA #' '
+    JSR CHROUT
+    PLA
+.endif
     STA KCS_START_LO
     JSR KCS_READ_BYTE
+.ifdef KCS_DEBUG
+    PHA
+    JSR KCS_PRINT_HEX
+    LDA #' '
+    JSR CHROUT
+    PLA
+.endif
     STA KCS_START_HI
     ; Snapshot original start for the run prompt in read_write.s
     ; (KCS_START_LO/HI walk forward during the data loop and are not preserved)
@@ -598,8 +601,25 @@ KCS_LOAD:
 
     ; --- Read byte count (little-endian) ---
     JSR KCS_READ_BYTE
+.ifdef KCS_DEBUG
+    PHA
+    JSR KCS_PRINT_HEX
+    LDA #' '
+    JSR CHROUT
+    PLA
+.endif
     STA KCS_LEN_LO
     JSR KCS_READ_BYTE
+.ifdef KCS_DEBUG
+    PHA
+    JSR KCS_PRINT_HEX          ; print len_hi
+    LDA #$0D
+    JSR CHROUT
+    LDA #$0A
+    JSR CHROUT
+    JSR KCS_DUMP_LOG            ; dump all transition counts for the 6 header bytes
+    PLA
+.endif
     STA KCS_LEN_HI
 
     ; --- Read data bytes, store, and accumulate XOR checksum ---
