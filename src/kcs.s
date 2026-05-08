@@ -453,7 +453,7 @@ KCS_READ_BIT:
     AND #$01              ; 2
     STA KCS_OUT_STATE     ; 3  reference level for transition detection
     LDX #0                ; 2  clear transition counter
-    LDA #165              ; 2  countdown: 165 × ~20 cycles ≈ 3300 cycles
+    LDA #163              ; 2  countdown: 163 × ~20 cycles ≈ 3260 cycles
     STA KCS_LAST_X        ; 3  store countdown (KCS_LAST_X repurposed)
 @count_loop:
     LDA KCS_PORT_IN       ; 4  sample input
@@ -465,7 +465,7 @@ KCS_READ_BIT:
 @no_change:
     DEC KCS_LAST_X        ; 5  decrement countdown
     BNE @count_loop       ; 3/2
-    ; X = total transitions in one bit period
+    ; X = total transitions counted during the bit window
     ; ~8 → 0-bit (C=0 after CPX); ~16 → 1-bit (C=1 after CPX)
 .ifdef KCS_DEBUG
     STX KCS_LAST_X        ; save count before clobbering X
