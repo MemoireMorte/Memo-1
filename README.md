@@ -33,6 +33,33 @@ High nibble (A15..A12) | Hex range      | Selection
 1111 (0xF)             | F000 - FFFF    | ROM
 ```
 
+### External slot
+
+The external slot is a 32-pin connector (J4) exposing the full CPU bus.
+
+```
+Pin | Signal      Pin | Signal
+----+---------    ----+---------
+  1 | A0           2 | D0
+  3 | A1           4 | D1
+  5 | A2           6 | D2
+  7 | A3           8 | D3
+  9 | A4          10 | D4
+ 11 | A5          12 | D5
+ 13 | A6          14 | D6
+ 15 | A7          16 | D7
+ 17 | A8          18 | GND
+ 19 | A9          20 | /Ext select
+ 21 | A10         22 | CLK
+ 23 | A11         24 | /IRQ
+ 25 | A12         26 | /NMI
+ 27 | A13         28 | /RES
+ 29 | A14         30 | R/W
+ 31 | A15         32 | +5V
+```
+
+Odd pins carry the address bus (A0–A15), even pins 2–16 carry the data bus (D0–D7), and the remaining even pins carry control signals. The **/Ext select** signal is asserted low when the CPU addresses $A000–$BFFF.
+
 ### VIA
 
 The 65C22 VIA is accessible at address $8000 to $8003 and cannot trigger interrupts. It is used to provide 2 Atari CX40 Joysticks ports.
@@ -153,6 +180,7 @@ By Benoit Aveline, aka Memoire Morte
 Special thanks to:
  - [Ben Eater](https://eater.net/6502) for his 6502 computer design and tutorials - *CC-BY License*
  - [Ian Ward](https://www.youtube.com/@IanWard1) for his YouTube videos on 2004 lcd and 555 timer - *No license found*
+ 
 Current source code is based on:
  - Wozmon by Steve Wozniak - *(c) 1976 Apple (before code IP even exist)*
  - [BASIC-M6502](https://github.com/microsoft/BASIC-M6502) by Weiland & Gates - *(c) Microsoft - MIT License*
