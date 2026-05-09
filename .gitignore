@@ -419,3 +419,7 @@ FodyWeavers.xsd
 
 # Assembler executables
 *.exe
+
+# Claude Code
+CLAUDE.md
+.claude/*
