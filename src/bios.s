@@ -254,6 +254,14 @@ STOP_TONE:
 
 
 LOAD:
+                lda #<RW_MSG_PRESS_PLAY
+                ldy #>RW_MSG_PRESS_PLAY
+                jsr PRINT_STRING
+                jsr PRINT_CR_LF
+@load_play_wait:
+                jsr MONRDKEY
+                bcc @load_play_wait
+                jsr CLEAR_BUFFER
                 jsr KCS_LOAD
                 bcs @load_error
 
@@ -281,6 +289,14 @@ MSG_LOAD_ERR:
                 .byte "?LOAD ERROR", $0D, $0A, $00
 
 SAVE:
+                lda #<RW_MSG_PRESS_REC
+                ldy #>RW_MSG_PRESS_REC
+                jsr PRINT_STRING
+                jsr PRINT_CR_LF
+@save_rec_wait:
+                jsr MONRDKEY
+                bcc @save_rec_wait
+                jsr CLEAR_BUFFER
                 lda TXTTAB
                 sta KCS_START_LO
                 lda TXTTAB+1

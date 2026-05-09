@@ -20,6 +20,10 @@ RW_MSG_SAVE_OK:
     .asciiz "Saved. Press any key."
 RW_MSG_LOADING:
     .asciiz "Loading..."
+RW_MSG_PRESS_REC:
+    .asciiz "Press REC then any key"
+RW_MSG_PRESS_PLAY:
+    .asciiz "Press PLAY then any key"
 RW_MSG_LOAD_OK:
     .asciiz "Loaded."
 RW_MSG_DEFAULT:
@@ -106,6 +110,14 @@ RW_DO_SAVE:
     BNE     @save_go
     INC     KCS_LEN_HI
 @save_go:
+    LDA     #<RW_MSG_PRESS_REC
+    LDY     #>RW_MSG_PRESS_REC
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+@save_rec_wait:
+    JSR     MONRDKEY
+    BCC     @save_rec_wait
+    JSR     CLEAR_BUFFER
     LDA     #<RW_MSG_SAVING
     LDY     #>RW_MSG_SAVING
     JSR     PRINT_STRING
@@ -128,6 +140,14 @@ RW_DO_LOAD:
     JSR     SMALL_BEEP
     JSR     CLEAR_BUFFER
     JSR     CURSOR_ON
+    LDA     #<RW_MSG_PRESS_PLAY
+    LDY     #>RW_MSG_PRESS_PLAY
+    JSR     PRINT_STRING
+    JSR     PRINT_CR_LF
+@load_play_wait:
+    JSR     MONRDKEY
+    BCC     @load_play_wait
+    JSR     CLEAR_BUFFER
     LDA     #<RW_MSG_LOADING
     LDY     #>RW_MSG_LOADING
     JSR     PRINT_STRING

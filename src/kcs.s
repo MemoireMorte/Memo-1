@@ -388,9 +388,6 @@ KCS_MEASURE_HALF:
     STA KCS_OUT_STATE     ; A = new level (from AND #$01 above)
     BRA @loop
 @real_edge:
-.ifdef KCS_DEBUG
-    STX KCS_LAST_X            ; DEBUG: save raw iteration count for caller to log
-.endif
     CPX #KCS_HALF_THRESHOLD   ; C set if X >= threshold (long = 0-bit)
     BCS @long
     SEC                  ; X < threshold: short = 1-bit
@@ -467,14 +464,6 @@ KCS_READ_BIT:
     BNE @count_loop       ; 3/2
     ; X = total transitions counted during the bit window
     ; ~8 → 0-bit (C=0 after CPX); ~16 → 1-bit (C=1 after CPX)
-.ifdef KCS_DEBUG
-    STX KCS_LAST_X        ; save count before clobbering X
-    LDX KCS_LOG_IDX
-    LDA KCS_LAST_X        ; A = transition count
-    STA KCS_LOG_BUF, X
-    INC KCS_LOG_IDX
-    LDX KCS_LAST_X        ; restore X = count for CPX
-.endif
     CPX #12               ; C=1 if X >= 12 → 1-bit; C=0 if X < 12 → 0-bit
     RTS                   ; return with C set by CPX (no SEC/CLC needed)
 
@@ -546,9 +535,6 @@ KCS_READ_BYTE:
 KCS_LOAD:
     ; --- Init bit log ---
     STZ KCS_LOG_IDX               ; DEBUG: reset log index
-    LDA #'W'                      ; DEBUG: waiting for leader
-    JSR CHROUT
-
     ; Disable interrupts for the entire load — an IRQ during the bit-counting
     ; loop would inject ~50+ cycles, corrupting the transition count.
     SEI
@@ -558,23 +544,9 @@ KCS_LOAD:
 
     ; --- Read and verify magic bytes ---
     JSR KCS_READ_BYTE
-.ifdef KCS_DEBUG
-    PHA
-    JSR KCS_PRINT_HEX
-    LDA #' '
-    JSR CHROUT
-    PLA
-.endif
     CMP #KCS_MAGIC_0              ; 'M'
     BNE @bad_magic
     JSR KCS_READ_BYTE
-.ifdef KCS_DEBUG
-    PHA
-    JSR KCS_PRINT_HEX
-    LDA #' '
-    JSR CHROUT
-    PLA
-.endif
     CMP #KCS_MAGIC_1              ; '1'
     BNE @bad_magic
     BRA @magic_ok
@@ -584,22 +556,8 @@ KCS_LOAD:
 
     ; --- Read destination address (little-endian) ---
     JSR KCS_READ_BYTE
-.ifdef KCS_DEBUG
-    PHA
-    JSR KCS_PRINT_HEX
-    LDA #' '
-    JSR CHROUT
-    PLA
-.endif
     STA KCS_START_LO
     JSR KCS_READ_BYTE
-.ifdef KCS_DEBUG
-    PHA
-    JSR KCS_PRINT_HEX
-    LDA #' '
-    JSR CHROUT
-    PLA
-.endif
     STA KCS_START_HI
     ; Snapshot original start for the run prompt in read_write.s
     ; (KCS_START_LO/HI walk forward during the data loop and are not preserved)
@@ -609,25 +567,8 @@ KCS_LOAD:
 
     ; --- Read byte count (little-endian) ---
     JSR KCS_READ_BYTE
-.ifdef KCS_DEBUG
-    PHA
-    JSR KCS_PRINT_HEX
-    LDA #' '
-    JSR CHROUT
-    PLA
-.endif
     STA KCS_LEN_LO
     JSR KCS_READ_BYTE
-.ifdef KCS_DEBUG
-    PHA
-    JSR KCS_PRINT_HEX          ; print len_hi
-    LDA #$0D
-    JSR CHROUT
-    LDA #$0A
-    JSR CHROUT
-    JSR KCS_DUMP_LOG            ; dump all transition counts for the 6 header bytes
-    PLA
-.endif
     STA KCS_LEN_HI
 
     ; --- Read data bytes, store, and accumulate XOR checksum ---
