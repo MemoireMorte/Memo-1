@@ -549,6 +549,10 @@ KCS_LOAD:
     LDA #'W'                      ; DEBUG: waiting for leader
     JSR CHROUT
 
+    ; Disable interrupts for the entire load — an IRQ during the bit-counting
+    ; loop would inject ~50+ cycles, corrupting the transition count.
+    SEI
+
     ; --- Wait for leader ---
     JSR KCS_WAIT_LEADER
 
@@ -668,11 +672,12 @@ KCS_LOAD:
     JSR CHROUT
     BRA @error
 @cksum_ok:
+    CLI                          ; re-enable interrupts
     CLC                          ; success
     RTS
 
 @error:
-    ; DEBUG: dump bit log over serial then signal error
+    CLI                          ; re-enable interrupts before serial output
     JSR KCS_DUMP_LOG
     SEC                          ; error
     RTS
