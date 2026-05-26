@@ -1,0 +1,18 @@
+Reference;Qty;Value;DNP;Exclude from BOM;Exclude from Board;Footprint;Datasheet
+C1;1;10n;;;;Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm;~
+C2 C3;2;47n;;;;Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm;~
+C4;1;10uF;;;;Capacitor_THT:CP_Radial_D4.0mm_P2.00mm;~
+C5 C6 C7 C8;4;100n;;;;Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm;~
+J1;1;Ext;;;;Connector_PinSocket_2.54mm:PinSocket_2x16_P2.54mm_Vertical;~
+J2;1;OUT;;;;Connector_Audio:Jack_3.5mm_CUI_SJ1-3525N_Horizontal;~
+J3;1;IN;;;;Connector_Audio:Jack_3.5mm_CUI_SJ1-3525N_Horizontal;~
+R1 R3 R4 R5 R10;5;4k7;;;;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;~
+R2;1;1k;;;;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;~
+R6 R7;2;47k;;;;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;~
+R8;1;470k;;;;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;~
+R9;1;10k;;;;Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal;~
+U1;1;LM358;;;;Package_DIP:DIP-8_W7.62mm_Socket_LongPads;http://www.ti.com/lit/ds/symlink/lm2904-n.pdf
+U2;1;74LS00;;;;Package_DIP:DIP-14_W7.62mm_Socket_LongPads;http://www.ti.com/lit/gpn/sn74ls00
+U4;1;74LS244;;;;Package_DIP:DIP-20_W7.62mm_Socket_LongPads;http://www.ti.com/lit/ds/symlink/sn74ls244.pdf
+U5;1;74LS74;;;;Package_DIP:DIP-14_W7.62mm_Socket_LongPads;74xx/74hc_hct74.pdf
+U6;1;74LS04;;;;Package_DIP:DIP-14_W7.62mm_Socket_LongPads;http://www.ti.com/lit/gpn/sn74LS04
