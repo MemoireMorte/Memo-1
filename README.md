@@ -60,6 +60,10 @@ Pin | Signal      Pin | Signal
 
 Odd pins carry the address bus (A0–A15), even pins 2–16 carry the data bus (D0–D7), and the remaining even pins carry control signals. The **/Ext select** signal is asserted low when the CPU addresses $A000–$BFFF.
 
+
+It can be used to run code from an external ROM (code must be compiled to be executed between A000 and BFFF).
+It is also the slot for the cassette tape extension (referenced as KCS, for the standard it's using). That extension allows to save/load code in BASIC, and to save / load raw dumps of code from anywhere in the address space. 
+
 ### VIA
 
 The 65C22 VIA is accessible at address $8000 to $8003 and cannot trigger interrupts. It is used to provide 2 Atari CX40 Joysticks ports.
