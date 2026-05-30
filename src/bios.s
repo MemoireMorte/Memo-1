@@ -252,6 +252,8 @@ STOP_TONE:
                 rts
 
 
+                nop
+                nop
 
 ; Input a character from the serial interface.
 ; On return, carry flag indicates whether a key was pressed
