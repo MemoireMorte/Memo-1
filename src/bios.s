@@ -252,70 +252,8 @@ STOP_TONE:
                 rts
 
 
-
-LOAD:
-                lda #<RW_MSG_PRESS_PLAY
-                ldy #>RW_MSG_PRESS_PLAY
-                jsr PRINT_STRING
-                jsr PRINT_CR_LF
-@load_play_wait:
-                jsr MONRDKEY
-                bcc @load_play_wait
-                jsr CLEAR_BUFFER
-                jsr KCS_LOAD
-                bcs @load_error
-
-                ; Success: KCS_START_LO/HI now points to end of loaded
-                ; program (= new VARTAB, since pointer advanced through all data)
-                lda KCS_START_LO
-                sta VARTAB
-                lda KCS_START_HI
-                sta VARTAB+1
-
-                lda #<MSG_LOADED
-                ldy #>MSG_LOADED
-                jsr STROUT
-                jmp FIX_LINKS        ; rebuilds BASIC line links, returns to prompt
-
-@load_error:
-                lda #<MSG_LOAD_ERR
-                ldy #>MSG_LOAD_ERR
-                jsr STROUT
-                jmp RESTART          ; return to prompt without clearing RAM
-
-MSG_LOADED:
-                .byte "LOADED", $0D, $0A, $00
-MSG_LOAD_ERR:
-                .byte "?LOAD ERROR", $0D, $0A, $00
-
-SAVE:
-                lda #<RW_MSG_PRESS_REC
-                ldy #>RW_MSG_PRESS_REC
-                jsr PRINT_STRING
-                jsr PRINT_CR_LF
-@save_rec_wait:
-                jsr MONRDKEY
-                bcc @save_rec_wait
-                jsr CLEAR_BUFFER
-                lda TXTTAB
-                sta KCS_START_LO
-                lda TXTTAB+1
-                sta KCS_START_HI
-                lda VARTAB
-                sec
-                sbc TXTTAB
-                sta KCS_LEN_LO
-                lda VARTAB+1
-                sbc TXTTAB+1
-                sta KCS_LEN_HI
-                jsr KCS_SAVE
-                lda #<MSG_SAVED
-                ldy #>MSG_SAVED
-                jmp STROUT
-
-MSG_SAVED:
-                .byte "SAVED", $0D, $0A, $00
-
+                nop
+                nop
 
 ; Input a character from the serial interface.
 ; On return, carry flag indicates whether a key was pressed
@@ -380,6 +318,70 @@ BUFFER_SIZE:
                 sec
                 sbc     READ_PTR
                 rts
+
+LOAD:
+                lda #<RW_MSG_PRESS_PLAY
+                ldy #>RW_MSG_PRESS_PLAY
+                jsr PRINT_STRING
+                jsr PRINT_CR_LF
+@load_play_wait:
+                jsr MONRDKEY
+                bcc @load_play_wait
+                jsr CLEAR_BUFFER
+                jsr KCS_LOAD
+                bcs @load_error
+
+                ; Success: KCS_START_LO/HI now points to end of loaded
+                ; program (= new VARTAB, since pointer advanced through all data)
+                lda KCS_START_LO
+                sta VARTAB
+                lda KCS_START_HI
+                sta VARTAB+1
+
+                lda #<MSG_LOADED
+                ldy #>MSG_LOADED
+                jsr STROUT
+                jmp FIX_LINKS        ; rebuilds BASIC line links, returns to prompt
+
+@load_error:
+                lda #<MSG_LOAD_ERR
+                ldy #>MSG_LOAD_ERR
+                jsr STROUT
+                jmp RESTART          ; return to prompt without clearing RAM
+
+MSG_LOADED:
+                .byte "LOADED", $0D, $0A, $00
+MSG_LOAD_ERR:
+                .byte "?LOAD ERROR", $0D, $0A, $00
+
+SAVE:
+                lda #<RW_MSG_PRESS_REC
+                ldy #>RW_MSG_PRESS_REC
+                jsr PRINT_STRING
+                jsr PRINT_CR_LF
+@save_rec_wait:
+                jsr MONRDKEY
+                bcc @save_rec_wait
+                jsr CLEAR_BUFFER
+                lda TXTTAB
+                sta KCS_START_LO
+                lda TXTTAB+1
+                sta KCS_START_HI
+                lda VARTAB
+                sec
+                sbc TXTTAB
+                sta KCS_LEN_LO
+                lda VARTAB+1
+                sbc TXTTAB+1
+                sta KCS_LEN_HI
+                jsr KCS_SAVE
+                lda #<MSG_SAVED
+                ldy #>MSG_SAVED
+                jmp STROUT
+
+MSG_SAVED:
+                .byte "SAVED", $0D, $0A, $00
+
 
 ; Interrupt request handler
 IRQ:
